@@ -53,7 +53,7 @@ class User extends BaseEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 48, nullable = false)
-    private AuthType auth = AuthType.USER;
+    private AuthRole auth = AuthRole.USER;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -65,13 +65,13 @@ class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {return enabled;}
 
     @Builder
-    public User(String email, String password, String username, AuthType auth,
+    public User(String email, String password, String username, AuthRole auth,
                 String phoneNum, String profileImageUrl, String providerId,
                 Boolean enabled, String provider, String bio, String tags) {
         this.email = email;
         this.password = password;
         this.username = username;
-        this.auth = auth != null ? auth : AuthType.USER;
+        this.auth = auth != null ? auth : AuthRole.USER;
         this.phoneNum = phoneNum;
         this.profileImageUrl = profileImageUrl;
         this.providerId = providerId;
