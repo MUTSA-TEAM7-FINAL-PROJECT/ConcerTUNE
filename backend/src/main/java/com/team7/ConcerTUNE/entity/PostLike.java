@@ -9,18 +9,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "post_like")
+@Table(name = "post_likes")
 class PostLike extends BaseEntity {
 
     @EmbeddedId
-    private PostLikeId id;
+    private PostLikeId id = new PostLikeId();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn(name = "user_id")
     private User user;
 
-    // 다대일 관계: 게시글
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("postId")
     @JoinColumn(name = "post_id")

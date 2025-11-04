@@ -18,5 +18,5 @@ public class ArtistGenreId implements Serializable {
     private Long artistId;
 
     @Column(name = "genre_id")
-    private Integer genreId;
+    private Long genreId;
 }
