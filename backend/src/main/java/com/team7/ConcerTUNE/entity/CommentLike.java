@@ -9,18 +9,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "comment_like")
+@Table(name = "comment_likes")
 class CommentLike extends BaseEntity {
 
     @EmbeddedId
-    private CommentLikeId id;
+    private CommentLikeId id = new CommentLikeId();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn(name = "user_id")
     private User user;
 
-    // 다대일 관계: 댓글
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("commentId")
     @JoinColumn(name = "comment_id")

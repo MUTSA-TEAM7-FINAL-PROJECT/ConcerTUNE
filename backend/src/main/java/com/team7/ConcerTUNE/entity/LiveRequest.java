@@ -3,6 +3,7 @@ package com.team7.ConcerTUNE.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,7 +42,7 @@ public class LiveRequest {
     private String venue;
 
     @Column(name = "price", precision = 10, scale = 2)
-    private java.math.BigDecimal price;
+    private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artist_id", nullable = false,
