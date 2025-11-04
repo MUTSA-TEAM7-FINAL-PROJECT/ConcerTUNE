@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "comment_likes")
-class CommentLike extends BaseEntity {
+public class CommentLike extends BaseEntity {
 
     @EmbeddedId
     private CommentLikeId id = new CommentLikeId();

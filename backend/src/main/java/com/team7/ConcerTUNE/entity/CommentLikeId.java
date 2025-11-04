@@ -11,7 +11,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-class CommentLikeId implements Serializable {
+public class CommentLikeId implements Serializable {
     private Long userId;
     private Long commentId;
 
