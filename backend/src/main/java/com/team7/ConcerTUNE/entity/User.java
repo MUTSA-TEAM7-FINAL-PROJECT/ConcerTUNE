@@ -1,5 +1,6 @@
 package com.team7.ConcerTUNE.entity;
 
+import com.team7.ConcerTUNE.dto.RegisterRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 @AllArgsConstructor
@@ -42,8 +44,8 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "isEnabled")
     private Boolean enabled = true;
 
-    @Column(length = 48)
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    private AuthProvider provider;
 
     @Column(length = 500)
     private String bio;
@@ -67,7 +69,7 @@ public class User extends BaseEntity implements UserDetails {
     @Builder
     public User(String email, String password, String username, AuthRole auth,
                 String phoneNum, String profileImageUrl, String providerId,
-                Boolean enabled, String provider, String bio, String tags) {
+                Boolean enabled, AuthProvider provider, String bio, String tags) {
         this.email = email;
         this.password = password;
         this.username = username;
@@ -80,4 +82,16 @@ public class User extends BaseEntity implements UserDetails {
         this.bio = bio;
         this.tags = tags;
     }
+
+    public static User from(RegisterRequest request, String encodedPassword) {
+        return User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .provider(AuthProvider.LOCAL)
+                .auth(AuthRole.USER)
+                .enabled(true)
+                .build();
+        // phoneNum, profileImageUrl, providerId, bio, tags는 초기에는 null로 설정됨
+        }
 }
