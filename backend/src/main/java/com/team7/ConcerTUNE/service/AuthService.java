@@ -51,7 +51,7 @@ public class AuthService {
         user = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthResponse.builder()
                 .accessToken(jwtToken)
@@ -82,7 +82,7 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("인증 후 사용자 정보를 찾을 수 없습니다: " + loginId));
 
         String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthResponse.builder()
                 .accessToken(jwtToken)
@@ -118,7 +118,7 @@ public class AuthService {
         }
 
         String newAccessToken = jwtService.generateToken(user);
-        String newRefreshToken = jwtService.generateRefreshToken(user.getEmail());
+        String newRefreshToken = jwtService.generateRefreshToken(user);
 
         Date expiration = jwtService.extractExpiration(refreshToken);
         long remainingTimeSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;

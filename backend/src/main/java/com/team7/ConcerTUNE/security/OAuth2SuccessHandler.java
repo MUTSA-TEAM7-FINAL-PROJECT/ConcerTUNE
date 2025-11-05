@@ -133,7 +133,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // JWT 토큰 발급 및 리다이렉션
         String accessToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("token", accessToken)

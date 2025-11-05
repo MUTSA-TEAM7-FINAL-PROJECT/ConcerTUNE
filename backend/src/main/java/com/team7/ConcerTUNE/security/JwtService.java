@@ -56,26 +56,23 @@ public class JwtService {
             extra.put("email", u.getEmail());
             extra.put("auth", u.getAuth().name());
         }
-        return generateToken(extra);
+        return generateToken(extra, userDetails);
     }
 
-    public String generateToken(Map<String, Object> extra) {
-        return buildToken(extra, jwtExpirationMs);
+    public String generateToken(Map<String, Object> extra, UserDetails userDetails) {
+        return buildToken(extra, userDetails, jwtExpirationMs);
     }
 
-    public String generateRefreshToken(String email) {
-        Map<String, Object> extra = new HashMap<>();
-        extra.put("email", email);
-
-        return buildToken(extra, refreshExpirationMs);
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, refreshExpirationMs);
     }
 
-    private String buildToken(Map<String, Object> claims, long expMs) {
+    private String buildToken(Map<String, Object> claims, UserDetails userDetails, long expMs) {
         long now = System.currentTimeMillis();
         String subjectEmail = (String) claims.get("email");
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subjectEmail)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
