@@ -21,6 +21,8 @@ public class SimpleUserDetails implements UserDetails {
         this.role = role;
     }
 
+    public Long getUserId() { return userId; }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));

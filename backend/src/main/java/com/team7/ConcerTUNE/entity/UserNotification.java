@@ -6,6 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "user_notifications")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

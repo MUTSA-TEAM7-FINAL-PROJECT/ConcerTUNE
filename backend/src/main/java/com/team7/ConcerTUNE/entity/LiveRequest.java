@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "live_requests",
         indexes = {
                 @Index(name = "idx_pr_artist",  columnList = "artist_id"),
-                @Index(name = "idx_pr_user",    columnList = "user_id"),
+                // @Index(name = "idx_pr_user",    columnList = "user_id"),
                 @Index(name = "idx_pr_status",  columnList = "request_status"),
                 @Index(name = "idx_pr_created", columnList = "request_created_at")
         })
