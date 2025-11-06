@@ -49,40 +49,38 @@ public class JwtService {
 
     private Key getSignInKey() { return signKey; }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(User user) {
         Map<String, Object> extra = new HashMap<>();
-        if (userDetails instanceof User u) {
-            extra.put("id", u.getId());
-            extra.put("email", u.getEmail());
-            extra.put("auth", u.getAuth().name());
-        }
-        return generateToken(extra, userDetails);
+
+        extra.put("id", user.getId());
+        extra.put("auth", user.getAuth().name());
+
+        return generateToken(extra, user);
     }
 
-    public String generateToken(Map<String, Object> extra, UserDetails userDetails) {
-        return buildToken(extra, userDetails, jwtExpirationMs);
+    public String generateToken(Map<String, Object> extra, User user) {
+        return buildToken(extra, user, jwtExpirationMs);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails, refreshExpirationMs);
+    public String generateRefreshToken(User user) {
+        return buildToken(new HashMap<>(), user, refreshExpirationMs);
     }
 
-    private String buildToken(Map<String, Object> claims, UserDetails userDetails, long expMs) {
+    private String buildToken(Map<String, Object> claims, User user, long expMs) {
         long now = System.currentTimeMillis();
-        String subjectEmail = (String) claims.get("email");
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(user.getUsername())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, String username) {
         final String sub = extractUsername(token);
         final boolean notExpired = extractExpiration(token).after(new Date());
-        String expected = userDetails.getUsername();
+        String expected = username;
 
         return notExpired && sub.equals(expected);
     }
@@ -114,13 +112,13 @@ public class JwtService {
 
     public SimpleUserDetails createSimpleUserDetailsFromClaims(Claims claims) {
         Long userId = claims.get("id", Long.class);
-        String email = claims.getSubject();
+        String username = claims.getSubject();
         String roleString = claims.get("auth", String.class);
-
         return new SimpleUserDetails(
                 userId,
-                email,
-                roleString
+                username,
+                roleString,
+                null
         );
     }
 }

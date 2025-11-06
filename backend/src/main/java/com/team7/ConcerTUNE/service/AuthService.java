@@ -109,7 +109,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new TokenRefreshException(refreshToken, "토큰 정보와 일치하는 사용자를 찾을 수 없습니다."));
 
-        if (!jwtService.isTokenValid(refreshToken, user)) {
+        if (!jwtService.isTokenValid(refreshToken, user.getUsername())) {
             throw new TokenRefreshException(refreshToken, "리프레시 토큰이 만료되었거나 서명이 유효하지 않습니다.");
         }
 

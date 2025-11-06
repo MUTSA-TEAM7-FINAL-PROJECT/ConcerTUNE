@@ -61,12 +61,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String username = claims.getSubject();
-
+        System.out.println(username);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = jwtService.createSimpleUserDetailsFromClaims(claims);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,

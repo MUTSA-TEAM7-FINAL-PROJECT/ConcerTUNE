@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 @AllArgsConstructor
-public class User extends BaseEntity implements UserDetails {
+public class User extends BaseEntity   {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,15 +55,6 @@ public class User extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(length = 48, nullable = false)
     private AuthRole auth = AuthRole.USER;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        String roleName = "ROLE_" + this.auth.name();
-        return List.of(new SimpleGrantedAuthority(roleName));
-    }
-
-    @Override
-    public boolean isEnabled() {return enabled;}
 
     @Builder
     public User(String email, String password, String username, AuthRole auth,

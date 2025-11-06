@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class TestController {
 
-    private String getCurrentUserEmail() {
-        // 현재 인증된 사용자 정보(Principal)에서 이메일(또는 사용자명)을 가져오는 헬퍼 함수
+    private String getCurrentUserName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null ? authentication.getName() : "Anonymous";
     }
@@ -30,9 +29,9 @@ public class TestController {
     @GetMapping("/id/{targetId}")
     @PreAuthorize("authentication.name == #targetId")
     public ResponseEntity<String> checkUserIdMatch(@PathVariable String targetId) {
-        String email = getCurrentUserEmail();
-        log.info("✅ GET /id/{} - 접근 성공 (사용자: {}). ID 일치 검사 통과.", targetId, email);
-        return ResponseEntity.ok("ID 일치 검사 성공. 사용자: " + email);
+        String username = getCurrentUserName();
+        log.info("✅ GET /id/{} - 접근 성공 (사용자: {}). ID 일치 검사 통과.", targetId, username);
+        return ResponseEntity.ok("ID 일치 검사 성공. 사용자: " + username);
     }
 
     // --- 2. 역할 기반 권한 검사 ---
@@ -44,7 +43,7 @@ public class TestController {
     @GetMapping("/role/user-only")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> userOnlyGetTest() {
-        String email = getCurrentUserEmail();
+        String email = getCurrentUserName();
         log.info("✅ GET /role/user-only - 접근 성공 (사용자: {}). ROLE_USER 필요.", email);
         return ResponseEntity.ok("USER 역할 접근 테스트 성공.");
     }
@@ -56,8 +55,8 @@ public class TestController {
     @PostMapping("/role/user-post")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> userOnlyPostTest() {
-        String email = getCurrentUserEmail();
-        log.info("✅ POST /role/user-post - 접근 성공 (사용자: {}). ROLE_USER 필요.", email);
+        String username = getCurrentUserName();
+        log.info("✅ POST /role/user-post - 접근 성공 (사용자: {}). ROLE_USER 필요.", username);
         return ResponseEntity.ok("USER 역할 POST 테스트 성공.");
     }
 
@@ -68,8 +67,8 @@ public class TestController {
     @PostMapping("/role/admin-only")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> adminOnlyPostTest() {
-        String email = getCurrentUserEmail();
-        log.info("✅ POST /role/admin-only - 접근 성공 (사용자: {}). ROLE_ADMIN 필요.", email);
+        String username = getCurrentUserName();
+        log.info("✅ POST /role/admin-only - 접근 성공 (사용자: {}). ROLE_ADMIN 필요.", username);
         return ResponseEntity.ok("ADMIN 역할 접근 테스트 성공.");
     }
 
@@ -80,8 +79,8 @@ public class TestController {
     @GetMapping("/role/artist-only")
     @PreAuthorize("hasRole('ARTIST')")
     public ResponseEntity<String> artistOnlyGetTest() {
-        String email = getCurrentUserEmail();
-        log.info("✅ GET /role/artist-only - 접근 성공 (사용자: {}). ROLE_ARTIST 필요.", email);
+        String username = getCurrentUserName();
+        log.info("✅ GET /role/artist-only - 접근 성공 (사용자: {}). ROLE_ARTIST 필요.", username);
         return ResponseEntity.ok("ARTIST 역할 접근 테스트 성공.");
     }
 
@@ -94,8 +93,8 @@ public class TestController {
     @GetMapping("/role/admin-or-artist")
     @PreAuthorize("hasAnyRole('ADMIN', 'ARTIST')")
     public ResponseEntity<String> adminOrArtistGetTest() {
-        String email = getCurrentUserEmail();
-        log.info("✅ GET /role/admin-or-artist - 접근 성공 (사용자: {}). ADMIN 또는 ARTIST 필요.", email);
+        String username = getCurrentUserName();
+        log.info("✅ GET /role/admin-or-artist - 접근 성공 (사용자: {}). ADMIN 또는 ARTIST 필요.", username);
         return ResponseEntity.ok("ADMIN 또는 ARTIST 역할 접근 테스트 성공.");
     }
 }

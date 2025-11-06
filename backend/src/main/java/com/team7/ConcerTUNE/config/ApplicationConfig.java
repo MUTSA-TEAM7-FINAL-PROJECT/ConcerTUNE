@@ -1,6 +1,7 @@
 package com.team7.ConcerTUNE.config;
 
 import com.team7.ConcerTUNE.repository.UserRepository;
+import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,12 @@ public class ApplicationConfig {
     public UserDetailsService userDetailsService() {
         return loginId -> {
             return userRepository.findByEmail(loginId)
+                    .map(user -> new SimpleUserDetails(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getAuth().name(),
+                            user.getPassword()
+                    ))
                     .orElseThrow(() -> new UsernameNotFoundException(
                             "해당 이메일로 등록된 계정이 없습니다: " + loginId));
         };

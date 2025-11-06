@@ -57,7 +57,7 @@ spring:
 
 jwt:
   secret-b64: ${JWT_SECRET_B64:NGNlYmFlYmNmMWEyMjM0NWYyZjcxYzNlYjhiMmRhODAzZjBhYjFlNjdlZTZiYzE4ZWY0ZTJjMjM2NDMyN2Q3Ng==}
-  expiration: 86400000
+  expiration: 3600000
   refresh-expiration: 604800000
 
 aws:

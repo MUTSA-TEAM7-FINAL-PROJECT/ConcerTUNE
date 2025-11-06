@@ -7,15 +7,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-    public class SimpleUserDetails implements UserDetails {
+public class SimpleUserDetails implements UserDetails {
 
+    private final String password;
     private final Long userId;
-    private final String email;
+    private final String username;
     private final String role;
 
-    public SimpleUserDetails(Long userId, String email, String role) {
+    public SimpleUserDetails(Long userId, String username, String role, String password) {
+        this.password = password;
         this.userId = userId;
-        this.email = email;
+        this.username = username;
         this.role = role;
     }
 
@@ -26,13 +28,11 @@ import java.util.List;
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override
-    public String getPassword() {
-        return null;
-    }
+    public String getPassword() {return password;}
 
     @Override
     public boolean isAccountNonExpired() {
