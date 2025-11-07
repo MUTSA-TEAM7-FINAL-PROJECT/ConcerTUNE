@@ -70,7 +70,7 @@ const Home = () => {
       </section>
 
       <section>
-        <h2 className="text-2xl font-bold mb-4">HOT 공연</h2>
+        <h2 className="text-2xl font-bold mb-4">지금 뜨는 공연</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {mockConcerts.map((concert) => (
             <Link

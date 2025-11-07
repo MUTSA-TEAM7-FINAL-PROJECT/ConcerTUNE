@@ -10,13 +10,23 @@ const PostList = ({ category }) => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-        }
-    }
-  })
+      try {
+        setLoading(true);
+        setError(null);
+        // const response = await communityService.getPosts(category, { page: page, size: 20});
+        setPosts(Response.data.content || []);
+      } catch (err) {
+        setError("게시글을 불러오는 데 실패했습니다.");
+        console.error(`[${category}] 게시판 로딩 실패:`, err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, [category, page]);
+
+  if (loading) return <div className="text-center p-4">게시글 로딩 중...</div>;
+  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
 };
 return (
   <div className="w-full">
