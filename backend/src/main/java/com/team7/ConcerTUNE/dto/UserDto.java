@@ -17,7 +17,7 @@ public class UserDto {
     private String phoneNum;
     private String bio;
     private String profileImageUrl;
-
+    private String role;
     public static UserDto fromEntity(User user) {
         return UserDto.builder()
                 .id(user.getId())
@@ -26,6 +26,7 @@ public class UserDto {
                 .bio(user.getBio())
                 .phoneNum(user.getPhoneNum())
                 .profileImageUrl(user.getProfileImageUrl())
+                .role(user.getAuth().name())
                 .build();
     }
 }
