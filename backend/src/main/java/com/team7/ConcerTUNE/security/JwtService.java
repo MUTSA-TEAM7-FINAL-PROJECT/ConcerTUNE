@@ -1,6 +1,5 @@
 package com.team7.ConcerTUNE.security;
 
-import com.team7.ConcerTUNE.entity.AuthRole;
 import com.team7.ConcerTUNE.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -12,7 +11,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -53,7 +51,12 @@ public class JwtService {
         Map<String, Object> extra = new HashMap<>();
 
         extra.put("id", user.getId());
-        extra.put("auth", user.getAuth().name());
+        extra.put("email", user.getEmail());
+        extra.put("username", user.getUsername());
+        extra.put("profileImageUrl", user.getProfileImageUrl());
+        extra.put("role", user.getAuth().name());
+        extra.put("bio",user.getBio());
+        extra.put("phoneNum",user.getPhoneNum());
 
         return generateToken(extra, user);
     }
@@ -70,7 +73,6 @@ public class JwtService {
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(user.getUsername())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -93,7 +95,7 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        return extractAllClaims(token).get("username", String.class);
     }
 
     public Date extractExpiration(String token) {
@@ -112,8 +114,8 @@ public class JwtService {
 
     public SimpleUserDetails createSimpleUserDetailsFromClaims(Claims claims) {
         Long userId = claims.get("id", Long.class);
-        String username = claims.getSubject();
-        String roleString = claims.get("auth", String.class);
+        String username = claims.get("username", String.class);
+        String roleString = claims.get("role", String.class);
         return new SimpleUserDetails(
                 userId,
                 username,

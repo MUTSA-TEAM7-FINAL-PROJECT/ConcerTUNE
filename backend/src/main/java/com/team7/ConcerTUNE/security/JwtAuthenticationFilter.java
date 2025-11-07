@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String username = claims.getSubject();
+        final String username = claims.get("username", String.class);
         System.out.println(username);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 

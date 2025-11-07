@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.service;
 
 
 import com.team7.ConcerTUNE.dto.*;
+import com.team7.ConcerTUNE.entity.AuthProvider;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
@@ -226,9 +227,11 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("해당 이메일의 사용자를 찾을 수 없습니다: " + request.getEmail()));
 
+        if (user.getProvider() != AuthProvider.LOCAL) {
+            throw new BadRequestException("소셜 계정은 비밀번호를 바꿀 수 없습니다.");
+        }
+
         String resetToken = RandomCodeGenerator.generateRandomCode(12);
-
-
         String redisKey = "PasswordReset:" + resetToken;
         long expirationMinutes = 10;
 

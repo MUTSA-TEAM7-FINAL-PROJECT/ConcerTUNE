@@ -3,11 +3,6 @@ package com.team7.ConcerTUNE.entity;
 import com.team7.ConcerTUNE.dto.RegisterRequest;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Getter
@@ -34,7 +29,7 @@ public class User extends BaseEntity   {
     @Column(name = "profile_image_url", columnDefinition = "TEXT")
     private String profileImageUrl;
 
-    @Column(length = 10)
+    @Column(length = 15)
     private String username;
 
     @Column(name = "provider_id", length = 100)
