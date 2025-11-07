@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class UserInitializer {
-    private static final String DEFAULT_EMAIL = "user@naver.com";
     private static final String DEFAULT_PASSWORD = "password12";
     private static final String DEFAULT_USERNAME = "Initial User";
 
@@ -21,16 +20,38 @@ public class UserInitializer {
             System.out.println("--- 초기 유저 설정 ---");
             String encodedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
 
-            User defaultUser = User.builder()
-                    .email(DEFAULT_EMAIL)
+            User defaultUser1 = User.builder()
+                    .email("user1@naver.com")
                     .password(encodedPassword)
+                    .username(DEFAULT_USERNAME+"1")
+                    .auth(AuthRole.USER)
+                    .provider(AuthProvider.LOCAL)
+                    .enabled(true)
+                    .build();
+
+            User defaultUser2 = User.builder()
+                    .email("user2@naver.com")
+                    .password(encodedPassword)
+                    .username(DEFAULT_USERNAME+"2")
+                    .auth(AuthRole.USER)
+                    .provider(AuthProvider.LOCAL)
+                    .enabled(true)
+                    .build();
+
+            User defaultUser3 = User.builder()
+                    .email("user3@naver.com")
+                    .password(encodedPassword+"3")
                     .username(DEFAULT_USERNAME)
                     .auth(AuthRole.USER)
                     .provider(AuthProvider.LOCAL)
                     .enabled(true)
                     .build();
 
-            userRepository.save(defaultUser);
+
+            userRepository.save(defaultUser1);
+            userRepository.save(defaultUser2);
+            userRepository.save(defaultUser3);
+
 
         };
     }
