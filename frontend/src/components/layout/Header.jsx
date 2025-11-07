@@ -1,11 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import NotificationDropdown from "./NotificatonDropdown";
-import authService from "../../services/auth";
-
+import { useAuth } from "../../context/AuthContext";
 const Header = () => {
-  const isLoggedIn = authService.isAuthenticated();
-  const currentUser = authService.getCurrentUser();
+  
+const { isLoggedIn, user: currentUser, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-10 w-full bg-white shadow-md">
@@ -63,7 +62,7 @@ const Header = () => {
               환영합니다, {currentUser?.username}님
             </span>
             <button
-              onClick={() => authService.logout()}
+              onClick={() => logout()}
               className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               로그아웃
@@ -78,7 +77,7 @@ const Header = () => {
               로그인
             </Link>
             <Link
-              to="/register"
+              to="/auth/select"
               className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
             >
               회원가입
