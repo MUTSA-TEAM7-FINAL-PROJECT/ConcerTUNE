@@ -4,11 +4,13 @@ import MainLayout from "./components/layout/MainLayout";
 import Home from "./pages/home";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import AuthSelectPage from "./pages/AuthSelectPage";
+import OAuth2Callback from "./pages/OAuth2Callback";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import ConcertListPage from "./pages/ConcertListPage";
 import CommunityPage from "./pages/CommunityPage";
 import LiveRequestPage from "./pages/LiveRequestPage";
-
+import PasswordResetPage from "./pages/PasswordResetPage";
 const App = () => {
   return (
     <BrowserRouter>
@@ -37,6 +39,9 @@ const App = () => {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/select" element={<AuthSelectPage />} />
+        <Route path="/oauth2/callback" element={<OAuth2Callback />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
       </Routes>
     </BrowserRouter>
   );
