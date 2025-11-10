@@ -25,7 +25,7 @@ public class UserController {
 
     //내 프로필 보기
     @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(userService.getMyProfile(user));
     }
@@ -38,14 +38,14 @@ public class UserController {
 
     //내 프로필 수정
     @PatchMapping("/me")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(userService.updateMyProfile(user));
     }
 
     //내 프로필 이미지 등록
     @PostMapping("/me/profile-image")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> uploadProfileImage(
             @AuthenticationPrincipal User user,
             @RequestParam("image") MultipartFile imageFile) throws IOException {
@@ -54,14 +54,14 @@ public class UserController {
 
     //내 프로필 이미지 삭제
     @DeleteMapping("/me/profile-image")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> deleteProfileImage(@AuthenticationPrincipal User user) throws IOException {
         return ResponseEntity.ok(userService.deleteProfileImage(user));
     }
 
     //계정 삭제
     @DeleteMapping("/me")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER', 'ADMIN')")
     public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal User user) {
         userService.deleteUser(user);
         return ResponseEntity.noContent().build();
@@ -69,7 +69,7 @@ public class UserController {
 
     //팔로우, 언팔로우
     @PostMapping("/{targetId}/follow")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> toggleFollow(
             @AuthenticationPrincipal User follower,
             @PathVariable Long targetId) {
@@ -79,7 +79,7 @@ public class UserController {
 
     //팔로워 유저들 조회
     @GetMapping("/me/followers")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<UserFollowResponse>> getMyFollowers(
             @AuthenticationPrincipal User user,
             Pageable pageable) {
@@ -88,7 +88,7 @@ public class UserController {
 
     //팔로잉 유저들 조회
     @GetMapping("/me/following")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<UserFollowResponse>> getMyFollowing(
             @AuthenticationPrincipal User user,
             Pageable pageable) {
