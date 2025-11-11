@@ -76,3 +76,6 @@ frontend:
 logging:
   level:
     org.springframework.security: DEBUG
+
+file:
+  upload-dir: C:/uploads/profile-images
