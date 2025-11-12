@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiHeart, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const useScrollLock = (isLocked) => {
     useEffect(() => {
