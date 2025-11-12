@@ -65,7 +65,7 @@ aws:
   secret-access-key: ${AWS_ACCESS_KEY:}
   region: ap-northeast-2
   s3:
-    bucket-name: concertune
+    bucket-name: concertune-mutsa-team7
     base-url:
 
 server:

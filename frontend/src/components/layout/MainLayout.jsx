@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "./Header";
-
+import ChatWidget from "../ChatWidget";
 {
   /* 공통 레이아웃 컴포넌트 */
 }
@@ -12,6 +12,7 @@ const MainLayout = ({ children }) => {
 
       {/* 메인 콘텐츠 영역 */}
       <main className="flex-1 w-full">
+        <ChatWidget roomId={1} liveName={"someLiveName"} />
         <div className="container mx-auto px-4 py-8">{children}</div>
       </main>
 
