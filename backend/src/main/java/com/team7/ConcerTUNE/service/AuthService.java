@@ -13,6 +13,7 @@ import com.team7.ConcerTUNE.security.JwtService;
 import com.team7.ConcerTUNE.util.RandomCodeGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,7 +35,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> stringStringRedisTemplate;
     private final EmailService emailService;
 
     @Transactional
@@ -114,7 +115,7 @@ public class AuthService {
             throw new TokenRefreshException(refreshToken, "리프레시 토큰이 만료되었거나 서명이 유효하지 않습니다.");
         }
 
-        if (redisTemplate.hasKey("BL:" + refreshToken)) {
+        if (stringStringRedisTemplate.hasKey("BL:" + refreshToken)) {
             throw new TokenRefreshException(refreshToken, "이미 무효화된 토큰입니다.");
         }
 
@@ -125,7 +126,7 @@ public class AuthService {
         long remainingTimeSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;
 
         if (remainingTimeSeconds > 0) {
-            redisTemplate.opsForValue().set(
+            stringStringRedisTemplate.opsForValue().set(
                     "BL:" + refreshToken,
                     "invalid",
                     remainingTimeSeconds,
@@ -160,7 +161,7 @@ public class AuthService {
                 long accessTtlSeconds = (accessExp.getTime() - now) / 1000;
 
                 if (accessTtlSeconds > 0) {
-                    redisTemplate.opsForValue().set(
+                    stringStringRedisTemplate.opsForValue().set(
                             "BL:" + accessToken,
                             "logout",
                             accessTtlSeconds,
@@ -177,7 +178,7 @@ public class AuthService {
                 long refreshTtlSeconds = (refreshExp.getTime() - now) / 1000;
 
                 if (refreshTtlSeconds > 0) {
-                    redisTemplate.opsForValue().set(
+                    stringStringRedisTemplate.opsForValue().set(
                             "BL:" + refreshToken,
                             "logout",
                             refreshTtlSeconds,
@@ -197,7 +198,7 @@ public class AuthService {
         String redisKey = "EmailVerify:" + request.getEmail();
         long expirationMinutes = 3;
 
-        redisTemplate.opsForValue().set(
+        stringStringRedisTemplate.opsForValue().set(
                 redisKey,
                 verificationCode,
                 expirationMinutes,
@@ -210,7 +211,7 @@ public class AuthService {
     public void confirmEmailVerification(VerifyConfirmRequest request) {
         String redisKey = "EmailVerify:" + request.getEmail();
 
-        String storedCode = redisTemplate.opsForValue().get(redisKey);
+        String storedCode = stringStringRedisTemplate.opsForValue().get(redisKey);
 
         if (storedCode == null) {
             throw new BadRequestException("인증 코드가 만료되었거나 유효하지 않습니다.");
@@ -220,7 +221,7 @@ public class AuthService {
             throw new BadRequestException("인증 코드가 일치하지 않습니다.");
         }
 
-        redisTemplate.delete(redisKey);
+        stringStringRedisTemplate.delete(redisKey);
     }
 
     public void requestPasswordForget(PasswordForgetRequest request) {
@@ -235,7 +236,7 @@ public class AuthService {
         String redisKey = "PasswordReset:" + resetToken;
         long expirationMinutes = 10;
 
-        redisTemplate.opsForValue().set(
+        stringStringRedisTemplate.opsForValue().set(
                 redisKey,
                 user.getEmail(),
                 expirationMinutes,
@@ -249,7 +250,7 @@ public class AuthService {
         String resetToken = request.getToken();
         String redisKey = "PasswordReset:" + resetToken;
 
-        String userEmail = redisTemplate.opsForValue().get(redisKey);
+        String userEmail = stringStringRedisTemplate.opsForValue().get(redisKey);
 
         if (userEmail == null) {
             throw new BadRequestException("재설정 토큰이 만료되었거나 유효하지 않습니다.");
@@ -261,6 +262,6 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        redisTemplate.delete(redisKey);
+        stringStringRedisTemplate.delete(redisKey);
     }
 }

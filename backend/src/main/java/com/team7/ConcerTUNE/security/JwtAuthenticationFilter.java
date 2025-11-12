@@ -24,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> stringStringRedisTemplate;
 
     @Override
     protected void doFilterInternal(
@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (redisTemplate.hasKey("BL:" + jwt)) {
+        if (stringStringRedisTemplate.hasKey("BL:" + jwt)) {
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "로그아웃되었거나 무효화된 토큰입니다.");
             return;
         }
