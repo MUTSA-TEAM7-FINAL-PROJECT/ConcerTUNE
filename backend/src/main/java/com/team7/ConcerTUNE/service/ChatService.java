@@ -7,7 +7,7 @@ import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
 import com.team7.ConcerTUNE.exception.UserNotFoundException;
 import com.team7.ConcerTUNE.repository.ArtistManagerRepository;
 import com.team7.ConcerTUNE.repository.ChatMessageRepository;
-import com.team7.ConcerTUNE.repository.LivesRepository;
+import com.team7.ConcerTUNE.repository.LiveRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,7 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ChatService {
     private final UserRepository userRepository;
-    private final LivesRepository livesRepository;
+    private final LiveRepository livesRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ArtistManagerRepository artistManagerRepository;
     private final RedisPublisher redisPublisher;
@@ -40,7 +40,7 @@ public class ChatService {
                     .orElseThrow(() -> new UserNotFoundException("태그 대상 유저 정보가 존재하지 않습니다."));
         }
 
-        Lives live = livesRepository.findById(Long.valueOf(messageDto.getRoomId()))
+        Live live = livesRepository.findById(Long.valueOf(messageDto.getRoomId()))
                 .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 공연(채팅방)입니다."));
 
         MessageInfo messageInfo = determineMessageInfo(sender, live, messageDto);
@@ -87,7 +87,7 @@ public class ChatService {
                 .build();
     }
 
-    private MessageInfo determineMessageInfo(User sender, Lives live, ChatMessageDto messageDto) {
+    private MessageInfo determineMessageInfo(User sender, Live live, ChatMessageDto messageDto) {
 
         if (sender.getAuth() == AuthRole.ADMIN) {
             return new MessageInfo("운영자", ChatMessageDto.MessageType.ADMIN);

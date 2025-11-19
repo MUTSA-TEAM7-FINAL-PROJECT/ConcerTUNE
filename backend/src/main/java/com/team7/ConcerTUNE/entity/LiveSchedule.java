@@ -4,17 +4,17 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "bookmarks")
+@Table(name = "live_schedules")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bookmarks extends BaseEntity{
+public class LiveSchedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "bookmark_id")
+  @Column(name = "live_schedule_id")
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -22,6 +22,6 @@ public class Bookmarks extends BaseEntity{
   private Live live;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  @JoinColumn(name = "schedule_id", nullable = false)
+  private Schedules schedule;
 }

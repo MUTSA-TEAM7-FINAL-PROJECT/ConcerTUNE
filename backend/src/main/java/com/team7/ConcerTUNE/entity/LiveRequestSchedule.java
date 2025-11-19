@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "live_schedules")
+@Table(name = "live_request_schedules")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LiveSchedules {
+public class LiveRequestSchedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +18,8 @@ public class LiveSchedules {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "live_id", nullable = false)
-  private Lives live;
+  @JoinColumn(name = "live_request_id", nullable = false)   // 👈 LiveRequest FK
+  private LiveRequest liveRequest;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "schedule_id", nullable = false)

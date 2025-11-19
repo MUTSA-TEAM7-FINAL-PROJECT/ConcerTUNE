@@ -2,15 +2,17 @@ package com.team7.ConcerTUNE.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "live_requests",
         indexes = {
-                @Index(name = "idx_pr_artist",  columnList = "artist_id"),
-                // @Index(name = "idx_pr_user",    columnList = "user_id"),
                 @Index(name = "idx_pr_status",  columnList = "request_status"),
                 @Index(name = "idx_pr_created", columnList = "request_created_at")
         })
@@ -41,32 +43,43 @@ public class LiveRequest {
     @Column(name = "venue", length = 200)
     private String venue;
 
-    @Column(name = "price", precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(name = "price", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String,Integer> price;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artist_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_pr_artist"))
-    private Artist artist;
+    @JoinColumn(name = "user_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_pr_user"))
+    private User user;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "liveRequest", cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<LiveRequestArtist> liveRequestArtists = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "liveRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LiveRequestSchedule> liveRequestSchedules = new ArrayList<>();
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", length = 20, nullable = false)
     private RequestStatus requestStatus = RequestStatus.PENDING;
 
     @Column(name = "request_created_at", nullable = false)
-    private LocalDateTime requestCreatedAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "status_updated_at")
-    private LocalDateTime statusUpdatedAt;
+    private LocalDateTime updatedAt;
 
     @PrePersist
     public void prePersist() {
-        if (requestCreatedAt == null) requestCreatedAt = LocalDateTime.now();
-        if (statusUpdatedAt == null)  statusUpdatedAt  = requestCreatedAt;
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (updatedAt == null) updatedAt = createdAt;
     }
 
     public void changeStatus(RequestStatus newStatus) {
         this.requestStatus = newStatus;
-        this.statusUpdatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -38,6 +38,12 @@ public class UserService {
         return UserResponse.from(user);
     }
 
+    // 유저 엔티티 반환
+    public User findEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+    }
+
     //내 프로필 수정
     public UserResponse updateMyProfile(User user) {
         User updateUser = userRepository.save(user);

@@ -27,5 +27,5 @@ public class Schedules extends BaseEntity{
   private LocalDateTime liveTime;
 
   @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<LiveSchedules> liveSchedules = new ArrayList<>();
+  private List<LiveSchedule> liveSchedules;
 }

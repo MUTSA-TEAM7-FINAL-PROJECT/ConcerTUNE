@@ -2,9 +2,12 @@ package com.team7.ConcerTUNE.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "lives")
@@ -13,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Lives extends BaseEntity {
+public class Live extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,15 +38,13 @@ public class Lives extends BaseEntity {
   @Column(length = 200)
   private String venue;
 
-  @Column(nullable = false)
-  private Integer price;
+  @Column(name = "price", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Map<String,Integer> price;
 
   @OneToMany(mappedBy = "live", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<LiveArtist> liveArtists = new ArrayList<>();
+  private List<LiveArtist> liveArtists;
 
   @OneToMany(mappedBy = "live", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<LiveSchedules> liveSchedules = new ArrayList<>();
-
-  @OneToMany(mappedBy = "live", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Bookmarks> bookmarks = new ArrayList<>();
+  private List<LiveSchedule> liveSchedules;
 }
