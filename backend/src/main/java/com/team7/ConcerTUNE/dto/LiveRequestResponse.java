@@ -38,7 +38,9 @@ public class LiveRequestResponse {
 
     private String userName;
 
-    private List<String> artistNames; // 🔥 여러명 반영
+    private List<String> artistNames;
+
+    private List<ScheduleSummaryDto> schedules;
 
     private RequestStatus requestStatus;
 
@@ -60,6 +62,13 @@ public class LiveRequestResponse {
                 .artistNames(
                         entity.getLiveRequestArtists().stream()
                                 .map(liveRequestArtist -> liveRequestArtist.getArtist().getArtistName())
+                                .toList()
+                )
+                .schedules(
+                        entity.getLiveRequestSchedules().stream()
+                                .map(liveRequestSchedule ->
+                                        ScheduleSummaryDto.fromEntity(liveRequestSchedule.getSchedule())
+                                )
                                 .toList()
                 )
 

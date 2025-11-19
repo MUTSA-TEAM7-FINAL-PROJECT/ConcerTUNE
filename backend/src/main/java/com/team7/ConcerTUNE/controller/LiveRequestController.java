@@ -8,14 +8,14 @@ import com.team7.ConcerTUNE.service.LiveRequestService;
 import com.team7.ConcerTUNE.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/liveRequest")
@@ -26,6 +26,7 @@ public class LiveRequestController {
 
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LiveRequestResponse> createRequest(@Valid @RequestBody LiveRequestRequest request, @AuthenticationPrincipal SimpleUserDetails principal) {
         User user = userservice.findEntityById(principal.getUserId());
         LiveRequestResponse response = liveRequestService.createRequest(request, user);
@@ -33,23 +34,27 @@ public class LiveRequestController {
     }
 
     @GetMapping("/list")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<LiveRequestResponse>> getRequests(Authentication authentication) {
-        List<LiveRequestResponse> liveRequests = liveRequestService.getLiveRequests(authentication);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<LiveRequestResponse>> getAllRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+            ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<LiveRequestResponse> liveRequests = liveRequestService.getAllRequests(pageable);
         return ResponseEntity.ok(liveRequests);
     }
 
     @GetMapping("/{liveRequestId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<LiveRequestResponse> getRequest(@PathVariable Long liveRequestId, Authentication authentication) {
-        LiveRequestResponse liveRequest = liveRequestService.getLiveRequest(liveRequestId, authentication);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LiveRequestResponse> getRequest(@PathVariable Long liveRequestId) {
+        LiveRequestResponse liveRequest = liveRequestService.getLiveRequest(liveRequestId);
         return ResponseEntity.ok(liveRequest);
     }
 
     @PatchMapping("/{liveRequestId}/approve")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> approveRequest(@PathVariable Long liveRequestId, Authentication authentication) {
-        liveRequestService.approveRequest(liveRequestId, authentication);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> approveRequest(@PathVariable Long liveRequestId) {
+        liveRequestService.approveRequest(liveRequestId);
         return ResponseEntity.ok().build();
     }
 }

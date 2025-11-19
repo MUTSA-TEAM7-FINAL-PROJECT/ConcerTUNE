@@ -2,18 +2,19 @@ package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.LiveRequestRequest;
 import com.team7.ConcerTUNE.dto.LiveRequestResponse;
+import com.team7.ConcerTUNE.dto.ScheduleCreateRequest;
 import com.team7.ConcerTUNE.dto.UserResponse;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
-import com.team7.ConcerTUNE.repository.ArtistRepository;
-import com.team7.ConcerTUNE.repository.LiveRepository;
-import com.team7.ConcerTUNE.repository.LiveRequestRepository;
-import com.team7.ConcerTUNE.repository.UserRepository;
+import com.team7.ConcerTUNE.repository.*;
 import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class LiveRequestService {
     private final ArtistRepository artistRepository;
     private final UserRepository userRepository;
     private final LiveRepository liveRepository;
+    private final ScheduleRepository scheduleRepository;
 
     // 요청 등록
     public LiveRequestResponse createRequest(LiveRequestRequest request, User user) {
@@ -39,7 +41,6 @@ public class LiveRequestService {
                 .user(user)
                 .build();
 
-        liveRequestRepository.save(liveRequest);
         for (Long artistId : request.getArtistIds()) {
             Artist artist = artistRepository.findById(artistId)
                     .orElseThrow(() -> new RuntimeException("아티스트를 찾을 수 없습니다: " + artistId));
@@ -52,24 +53,39 @@ public class LiveRequestService {
             liveRequest.getLiveRequestArtists().add(join);
         }
 
+        for (ScheduleCreateRequest scheduleRequest : request.getSchedules()) {
+
+            Schedule schedule = Schedule.builder()
+                    .liveDate(scheduleRequest.getLiveDate())
+                    .liveTime(scheduleRequest.getStartTime())
+                    .build();
+
+            scheduleRepository.save(schedule);
+
+            LiveRequestSchedule join = LiveRequestSchedule.builder()
+                    .liveRequest(liveRequest)
+                    .schedule(schedule)
+                    .build();
+
+            liveRequest.getLiveRequestSchedules().add(join);
+        }
+
         liveRequestRepository.save(liveRequest);
 
         return LiveRequestResponse.fromEntity(liveRequest);
     }
 
     // 요청 목록 반환
-    public List<LiveRequestResponse> getLiveRequests(Authentication authentication) {
-        User admin = getAdminFromAuth(authentication);
-
-        List<LiveRequest> liveRequests = liveRequestRepository.findByRequestStatus(RequestStatus.PENDING);
-
-        return LiveRequestResponse.fromEntity(liveRequests);
+    public Page<LiveRequestResponse> getAllRequests(Pageable pageable) {
+        Page<LiveRequest> liveRequests = liveRequestRepository.findAllByRequestStatus(RequestStatus.PENDING, pageable);
+        return liveRequests.map(liveRequest -> {
+            LiveRequestResponse response = LiveRequestResponse.fromEntity(liveRequest);
+            return response;
+        });
     }
 
     // 요청 개별 반환
-    public LiveRequestResponse getLiveRequest(Long liveRequestId, Authentication authentication) {
-        User admin = getAdminFromAuth(authentication);
-
+    public LiveRequestResponse getLiveRequest(Long liveRequestId) {
         LiveRequest liveRequest = liveRequestRepository.findById(liveRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다. ID: " + liveRequestId));
 
@@ -77,9 +93,7 @@ public class LiveRequestService {
     }
 
     // 요청 승인
-    public void approveRequest(Long liveRequestId, Authentication authentication) {
-        User admin = getAdminFromAuth(authentication);
-
+    public void approveRequest(Long liveRequestId) {
         LiveRequest liveRequest = liveRequestRepository.findById(liveRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다. ID: " + liveRequestId));
 

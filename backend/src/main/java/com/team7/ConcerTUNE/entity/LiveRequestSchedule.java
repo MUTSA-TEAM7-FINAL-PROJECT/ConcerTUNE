@@ -23,5 +23,5 @@ public class LiveRequestSchedule {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "schedule_id", nullable = false)
-  private Schedules schedule;
+  private Schedule schedule;
 }

@@ -29,4 +29,6 @@ public class LiveRequestRequest {
     private Long userId;
 
     private List<Long> artistIds;
+
+    private List<ScheduleCreateRequest> schedules;
 }
