@@ -61,12 +61,12 @@ jwt:
   refresh-expiration: 604800000
 
 aws:
-  access-key-id: ${AWS_SECRET_KEY:}
-  secret-access-key: ${AWS_ACCESS_KEY:}
+  access-key-id:
+  secret-access-key:
   region: ap-northeast-2
   s3:
-    bucket-name: concertune-mutsa-team7
-    base-url:
+    bucket-name: pli-please
+    base-url: https://pli-please.s3.ap-northeast-2.amazonaws.com/
 
 server:
   port: 8080

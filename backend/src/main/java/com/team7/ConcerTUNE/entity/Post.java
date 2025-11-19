@@ -51,10 +51,57 @@ public class Post extends BaseEntity {
     @Column(name = "category_id", length = 48, nullable = false)
     private CommunityCategoryType category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "live_id")
+    private Lives live;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostLike> likes = new ArrayList<>();
+
+    // Service에서 사용하기 위해 Post 생성 메서드 수정: Live 객체 추가
+    public static Post create(CommunityCategoryType category, String title, String content,
+                              List<String> imageUrls, List<String> fileUrls, User writer, Lives live) {
+        Post post = new Post();
+        post.category = category;
+        post.title = title;
+        post.content = content;
+        post.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
+        post.fileUrls = fileUrls != null ? new ArrayList<>(fileUrls) : new ArrayList<>();
+        post.writer = writer;
+        post.live = live; // Live 엔티티 할당
+        return post;
+    }
+
+    // Service에서 사용하기 위해 Post 수정 메서드 추가
+    public void update(String title, String content, List<String> imageUrls, List<String> fileUrls) {
+        this.title = title;
+        this.content = content;
+        this.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
+        this.fileUrls = fileUrls != null ? new ArrayList<>(fileUrls) : new ArrayList<>();
+        // Live 정보는 일반적으로 수정되지 않으므로 update 메서드에서 제외했습니다.
+    }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
+
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementLikeCount() {
+        this.likeCount--;
+    }
+
+    public void incrementCommentCount() {
+        this.commentCount++;
+    }
+
+    public void decrementCommentCount() {
+        this.commentCount--;
+    }
 
 }

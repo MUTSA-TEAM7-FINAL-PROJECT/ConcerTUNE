@@ -7,84 +7,154 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileStorageService {
     private final AmazonS3 s3Client;
 
-    @Value("${aws.s3.bucket-name")
+    @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file, String dirName) {
-        if (file == null || file.isEmpty()) {
-            throw new BadRequestException("업로드할 파일이 없습니다.");
+    @Value("${aws.s3.base-url}")
+    private String baseUrl;
+
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
+    private static final int IMAGE_SIZE = 1080;
+
+    public List<String> uploadFiles(MultipartFile[] files, String folder) {
+        if (s3Client == null) {
+            log.warn("S3 client not configured. Using local storage fallback.");
+            throw new RuntimeException("S3 not configured");
         }
 
-        // 파일을 S3에 업로드하고 접근 가능한 URL 반환
+        List<String> uploadedUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+
+            String url = uploadFile(file, folder);
+            uploadedUrls.add(url);
+        }
+
+        return uploadedUrls;
+    }
+
+    public String uploadFile(MultipartFile file, String folder) {
+        validateFile(file);
+
+        String fileName = generateFileName(file, folder);
+
         try {
-            String originalFileName = file.getOriginalFilename();
-            String uniqueFileName = createFileName(originalFileName);
-            String s3Key = dirName + "/" + uniqueFileName;
+            BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage == null) {
+                throw new BadRequestException("Invalid image file");
+            }
 
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getSize());
-            metadata.setContentType(file.getContentType());
+            BufferedImage squareImage = cropToSquare(originalImage);
 
-            s3Client.putObject(new PutObjectRequest(
-                    bucketName, s3Key, file.getInputStream(), metadata)
-                    .withCannedAcl(CannedAccessControlList.PublicRead)
-            );
+            BufferedImage resizedImage = resizeImage(squareImage, IMAGE_SIZE, IMAGE_SIZE);
 
-            return s3Client.getUrl(bucketName, s3Key).toString();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(resizedImage, "jpg", outputStream);
+            PutObjectRequest putObjectRequest = getPutObjectRequest(file, outputStream, fileName);
+
+            s3Client.putObject(putObjectRequest);
+
+            log.info("Successfully uploaded file to S3: {}", fileName);
+
+            return baseUrl + fileName;
         } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
+            log.error("Failed to upload file to S3", e);
+            throw new RuntimeException("Failed to upload file", e);
+        }
+    }
+    private PutObjectRequest getPutObjectRequest(MultipartFile file, ByteArrayOutputStream outputStream, String fileName) {
+        byte[] imageBytes = outputStream.toByteArray();
+        InputStream inputStream = new ByteArrayInputStream(imageBytes);
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType("image/jpeg");
+        metadata.setContentLength(imageBytes.length);
+
+        return new PutObjectRequest(
+                bucketName,
+                fileName,
+                inputStream,
+                metadata
+        );
+    }
+
+
+    private BufferedImage cropToSquare(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int squareSize = Math.min(width, height);
+
+        int x = (width - squareSize) / 2;
+        int y = (height - squareSize) / 2;
+
+        return image.getSubimage(x, y, squareSize, squareSize);
+    }
+
+    private BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
+        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics2D = resizedImage.createGraphics();
+
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        graphics2D.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+        graphics2D.dispose();
+
+        return resizedImage;
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("File size exceeds 5MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
         }
     }
 
-    // S3에 업로드된 파일 삭제
-    public void deleteFile(String fileUrl) {
-        try {
-            String s3Key = extractKeyFromUrl(fileUrl);
-            s3Client.deleteObject(new DeleteObjectRequest(bucketName, s3Key));
-        } catch (Exception e) {
-            System.err.println("S3 파일 삭제 실패: " + fileUrl + " | " + e.getMessage());
-        }
+    private String generateFileName(MultipartFile file, String folder) {
+        return folder + "/" + UUID.randomUUID().toString() + ".jpg";
     }
 
-    // 헬퍼 메서드
-    // S3 키 생성
-    private String createFileName(String originalFileName) {
-        String ext = extractExt(originalFileName);
-        String uuid = UUID.randomUUID().toString();
-        return uuid + "." + ext;
-    }
-
-    // 원본 파일명에서 확장자 추출
-    private String extractExt(String originalFileName) {
-        try {
-            return originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
-        } catch (Exception e) {
-            throw new BadRequestException("잘못된 파일 형식입니다: 확장자 없음");
+    public void deleteFile(String fileKey) {
+        if (s3Client == null) {
+            log.warn("S3 client not configured, Cannot delete file.");
+            throw new RuntimeException("S3 not configured");
         }
-    }
 
-    // S3 URL에서 키(파일 경로) 호출
-    private String extractKeyFromUrl(String fileUrl) {
-        try {
-            String baseUrl = s3Client.getUrl(bucketName, "").toString();
-            String s3Key = fileUrl.substring(baseUrl.length());
-            return URLDecoder.decode(s3Key, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new BadRequestException("잘못된 S3 URL 형식입니다.");
-        }
+        s3Client.deleteObject(new DeleteObjectRequest(bucketName, fileKey));
+        log.info("Successfully deleted file from S3: {}", fileKey);
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     @Query("SELECT f.follower FROM Follow f WHERE f.following = :user")
@@ -19,4 +21,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     boolean existsByFollowerAndFollowing(User follower, User following);
 
     void deleteByFollowerAndFollowing(User follower, User following);
+
+    @Query(value = "SELECT f.artist_id FROM follows f WHERE f.user_id = :userId", nativeQuery = true)
+    List<Long> findFollowedArtistIdsByUserId(@Param("userId") Long userId);
 }

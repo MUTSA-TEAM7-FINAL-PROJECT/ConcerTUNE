@@ -9,6 +9,8 @@ import com.team7.ConcerTUNE.repository.ArtistRepository;
 import com.team7.ConcerTUNE.repository.UserArtistRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
 import com.team7.ConcerTUNE.security.SimpleUserDetails;
+import com.team7.ConcerTUNE.temp.dto.ArtistResponseDto;
+import com.team7.ConcerTUNE.temp.dto.NewArtistRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +47,17 @@ public class ArtistService {
             long followerCount = userArtistRepository.countByArtist(artist);
             return ArtistSummaryDto.fromEntity(artist, followerCount);
         });
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArtistResponseDto> getAllArtists() {
+        // 1. Repository를 통해 모든 아티스트 Entity를 조회
+        List<Artist> artists = artistRepository.findAll();
+
+        // 2. Entity 리스트를 DTO 리스트로 변환
+        return artists.stream()
+                .map(ArtistResponseDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     // 아티스트 상세 정보 조회
@@ -77,6 +94,15 @@ public class ArtistService {
         UserArtist follow = userArtistRepository.findByUserAndArtist(user, artist)
                 .orElseThrow(() -> new ResourceNotFoundException("팔로우 관계를 찾을 수 없습니다"));
         userArtistRepository.delete(follow);
+    }
+
+    @Transactional
+    public Artist createNewArtistForRequest(NewArtistRequestDto dto) {
+        Artist newArtist = Artist.builder()
+                .artistName(dto.getName())
+                .isDomestic(dto.getIsDomestic())
+                .build();
+        return artistRepository.save(newArtist);
     }
 
     /* 아티스트 권한 유저의 공연 등록 요청
@@ -116,5 +142,20 @@ public class ArtistService {
     private Artist findArtistById(Long artistId) {
         return artistRepository.findById(artistId)
                 .orElseThrow(() -> new ResourceNotFoundException("아티스트를 찾을 수 없습니다. ID: " + artistId));
+    }
+
+    public List<String> getArtistNamesByIds(List<Long> artistIds) {
+
+        if (artistIds == null || artistIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Artist> artists = artistRepository.findAllById(artistIds);
+
+        List<String> artistNames = artists.stream()
+                .map(Artist::getArtistName)
+                .collect(Collectors.toList());
+
+        return artistNames;
     }
 }

@@ -1,10 +1,13 @@
 package com.team7.ConcerTUNE.entity;
 
+import com.team7.ConcerTUNE.util.JsonToMapConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "lives")
@@ -35,8 +38,9 @@ public class Lives extends BaseEntity {
   @Column(length = 200)
   private String venue;
 
-  @Column(nullable = false)
-  private Integer price;
+  @Convert(converter = JsonToMapConverter.class)
+  @Column(name = "seat_prices", columnDefinition = "TEXT")
+  private Map<String, Integer> seatPrices = new HashMap<>();
 
   @OneToMany(mappedBy = "live", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<LiveArtist> liveArtists = new ArrayList<>();

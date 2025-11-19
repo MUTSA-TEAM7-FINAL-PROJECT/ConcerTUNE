@@ -2,7 +2,9 @@ package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.entity.Artist;
 import com.team7.ConcerTUNE.service.ArtistService;
+import com.team7.ConcerTUNE.temp.dto.ArtistResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,7 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/artists")
@@ -29,6 +35,13 @@ public class ArtistController {
         Page<ArtistSummaryDto> artistPage = artistService.getArtistList(name, pageable);
         return ResponseEntity.ok(artistPage);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<ArtistResponseDto>> getAllArtists() {
+        List<ArtistResponseDto> artists = artistService.getAllArtists();
+        return ResponseEntity.ok(artists);
+    }
+
 
     // 아티스트 상세 정보 조회
     @GetMapping("/{artistId}")

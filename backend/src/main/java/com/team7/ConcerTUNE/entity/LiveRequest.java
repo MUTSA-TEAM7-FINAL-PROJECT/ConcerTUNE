@@ -1,16 +1,23 @@
 package com.team7.ConcerTUNE.entity;
 
+import com.team7.ConcerTUNE.temp.dto.NewArtistRequestDto;
+import com.team7.ConcerTUNE.temp.dto.ScheduleDto;
+import com.team7.ConcerTUNE.util.JsonToLongListConverter;
+import com.team7.ConcerTUNE.util.JsonToMapConverter;
+import com.team7.ConcerTUNE.util.JsonToNewArtistListConverter;
+import com.team7.ConcerTUNE.util.JsonToScheduleListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 @Entity
 @Table(name = "live_requests",
         indexes = {
-                @Index(name = "idx_pr_artist",  columnList = "artist_id"),
-                // @Index(name = "idx_pr_user",    columnList = "user_id"),
+                @Index(name = "idx_pr_requester", columnList = "requester_id"),
                 @Index(name = "idx_pr_status",  columnList = "request_status"),
                 @Index(name = "idx_pr_created", columnList = "request_created_at")
         })
@@ -41,13 +48,22 @@ public class LiveRequest {
     @Column(name = "venue", length = 200)
     private String venue;
 
-    @Column(name = "price", precision = 10, scale = 2)
-    private BigDecimal price;
+    @Convert(converter = JsonToMapConverter.class)
+    @Column(name = "seat_prices", columnDefinition = "TEXT")
+    private Map<String, Integer> seatPrices = new HashMap<>();
+
+    @Convert(converter = JsonToLongListConverter.class)
+    @Column(name = "artist_ids", columnDefinition = "TEXT")
+    private List<Long> artistIds = new ArrayList<>();
+
+    @Convert(converter = JsonToNewArtistListConverter.class)
+    @Column(name = "new_artist_requests_data", columnDefinition = "TEXT")
+    private List<NewArtistRequestDto> newArtistRequestData = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artist_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_pr_artist"))
-    private Artist artist;
+    @JoinColumn(name = "requester_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_live_request_requester"))
+    private User requester;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", length = 20, nullable = false)
@@ -58,6 +74,10 @@ public class LiveRequest {
 
     @Column(name = "status_updated_at")
     private LocalDateTime statusUpdatedAt;
+
+    @Convert(converter = JsonToScheduleListConverter.class)
+    @Column(name = "requested_schedules", columnDefinition = "TEXT")
+    private List<ScheduleDto> requestedSchedules = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
