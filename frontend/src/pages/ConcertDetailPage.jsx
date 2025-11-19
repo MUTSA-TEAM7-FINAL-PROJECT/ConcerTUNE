@@ -8,17 +8,15 @@ const ConcertDetailPage = () => {
     const { id: concertId } = useParams(); 
     
     const TABS = ["아티스트", "일정/가격", "자유게시판", "동행 게시판", "후기"];
-    // 💡 탭에 일정/가격을 추가하여 통합 정보를 보여줍니다.
     const [activeTab, setActiveTab] = useState(TABS[0]); 
 
     const [concert, setConcert] = useState(null); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // DTO를 불러오는 로직 (유지)
     useEffect(() => {
         const fetchConcertDetail = async () => {
-            if (!concertId || isNaN(concertId)) { // ID가 유효한지 다시 확인하는 것이 좋습니다.
+            if (!concertId || isNaN(concertId)) { 
                 setLoading(false);
                 setError("잘못된 공연 ID입니다.");
                 return;
@@ -28,7 +26,6 @@ const ConcertDetailPage = () => {
                 setLoading(true);
                 setError(null);
                 
-                // Live ID (concertId)가 숫자/문자열 형태로 전달된다고 가정
                 const liveData = await concertService.getConcert(concertId); 
                 
                 setConcert(liveData); 
@@ -85,18 +82,21 @@ const ConcertDetailPage = () => {
                     {!hasSchedules ? (
                         <p className="text-gray-500">등록된 공연 일정이 없습니다.</p>
                     ) : (
-                        <ul className="space-y-2 text-lg text-gray-800">
-                            {concert.schedules.map((schedule, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                    <span className="font-bold text-gray-600">날짜:</span> 
-                                    {schedule.liveDate ? 
-                                        new Date(schedule.liveDate).toLocaleDateString('ko-KR') : '날짜 미정'}
-                                    <span className="font-bold text-gray-600">/ 시간:</span> 
-                                    {schedule.liveTime ? 
-                                        new Date(schedule.liveTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '시간 미정'}
-                                </li>
-                            ))}
-                        </ul>
+                       <ul className="space-y-2 text-lg text-gray-800">
+                        {concert.schedules.map((schedule, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                                <span className="font-bold text-gray-600">날짜:</span> 
+                                {/* liveDate는 이미 "YYYY-MM-DD" 형식의 문자열이므로 그대로 표시합니다. */}
+                                {schedule.liveDate || '날짜 미정'} 
+                                
+                                <span className="font-bold text-gray-600">/ 시간:</span> 
+                                {schedule.liveTime 
+                                    // liveTime 문자열 (예: "19:00:00")에서 시와 분(0번째부터 5글자)만 잘라서 표시합니다.
+                                    ? schedule.liveTime.substring(0, 5) 
+                                    : '시간 미정'}
+                            </li>
+                        ))}
+                    </ul>
                     )}
                 </div>
 
