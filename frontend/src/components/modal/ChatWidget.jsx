@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import chatService from "../services/chatService";
-import { useAuth } from "../context/AuthContext";
+import chatService from "../../services/chatService";
+import { useAuth } from "../../context/AuthContext";
 
 const PAGE_SIZE = 20; 
 const ChatWidget = ({ roomId, liveName }) => {

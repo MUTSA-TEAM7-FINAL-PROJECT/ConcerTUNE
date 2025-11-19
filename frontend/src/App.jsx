@@ -1,7 +1,7 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import Home from "./pages/home";
+import Home from "./pages/home"; 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AuthSelectPage from "./pages/AuthSelectPage";
@@ -11,32 +11,44 @@ import ConcertListPage from "./pages/ConcertListPage";
 import CommunityPage from "./pages/CommunityPage";
 import LiveRequestPage from "./pages/LiveRequestPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import PostList from "./components/post/PostList";
+import PostDetail from "./components/post/PostDetail";
+import PostWriteEdit from "./components/post/PostWriteEdit";
+import ConcertDetailPage from "./pages/ConcertDetailPage";
+import ConcertRequestPage from "./pages/ConcertRequestPage";
+import AdminRequestListPage from "./pages/AdminRequestListPage"; 
+
 const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* MainLayout을 사용하는 페이지들 */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/concerts" element={<ConcertListPage />} />
-          <Route path="/artists/:artistId" element={<ArtistDetailPage />} />
+    <Routes>
+      <Route path="/*" element={<MainLayout />}> 
+          <Route path="" element={<Home />} />
+          <Route path="concerts" element={<ConcertListPage />} />
+          <Route path="concerts/:id" element={<ConcertDetailPage />} />
+          <Route path="concerts/request" element={<ConcertRequestPage />} />
+          <Route path="artists/:artistId" element={<ArtistDetailPage />} />
 
-          {/*<Route path="/community" element={<CommunityPage />}>
-            <Route index element={<PostList category="free" />} /> // 기본 탭
-            <Route path="free" element={<PostList category="/free" />} />
-            <Route path="review" element={<PostList category="review" />} />
-            <Route
-              path="accompany"
-              element={<PostList category="accompany" />}
-            />
+          <Route path="admin/requests" element={<AdminRequestListPage />} /> 
+
+
+          {/* 커뮤니티 목록 및 탭 레이아웃 */}
+          <Route path="community" element={<CommunityPage />}>
+                  <Route index element={<Navigate to="free" replace />} /> 
+                  <Route path=":category" element={<PostList />} /> 
           </Route>
 
-          <Route path="/post/:postId" element={<PostDetail />} />
-          <Routh path="/write" element={<PostWrite />} /> */}
-
-          <Route path="/artists/request" element={<LiveRequestPage />} />
+          {/* 💡 수정된 부분: 게시글 상세 경로를 post/:postId 로 변경 */}
+          <Route path="post/:postId" element={<PostDetail />} /> 
+          
+          {/* 게시글 작성/수정 경로는 카테고리 유지가 필요함 */}
+          <Route path="community/write/:category" element={<PostWriteEdit />} />
+          <Route path="community/edit/:category/:postId" element={<PostWriteEdit />} />
+          
+          <Route path="artists/request" element={<LiveRequestPage />} />
         </Route>
 
+        {/* MainLayout을 사용하지 않는 페이지 */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/auth/select" element={<AuthSelectPage />} />
