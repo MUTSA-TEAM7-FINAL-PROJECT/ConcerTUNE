@@ -9,7 +9,6 @@ const NotificationDropdown = () => {
   const [loading, setLoading] = useState(false);
   const isLoggedIn = authService.isAuthenticated();
 
-  // 드롭다운이 열릴 때만 알림을 가져옴
   useEffect(() => {
     if (isOpen && isLoggedIn) {
       fetchNotifications();
@@ -19,7 +18,6 @@ const NotificationDropdown = () => {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      // 안 읽은 알림만 가져오기
       const response = await notificationService.getMyNotifications("false");
       setNotifications(response.data);
     } catch (error) {
@@ -32,7 +30,6 @@ const NotificationDropdown = () => {
   const handleMarkAsRead = async (userNotificationId) => {
     try {
       await notificationService.markAsRead(userNotificationId);
-      // 목록에서 즉시 제거
       setNotifications((prev) =>
         prev.filter((n) => n.id !== userNotificationId)
       );
@@ -45,7 +42,6 @@ const NotificationDropdown = () => {
 
   return (
     <div className="relative">
-      {/* 알림 아이콘 버튼 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-gray-100"

@@ -8,10 +8,24 @@ const artistService = {
       params.append("name", name);
     }
     if (pageable) {
-      params.append("page", pageable.page);
+      params.append("page", pageable.page); 
       params.append("size", pageable.size);
     }
     return api.get(`/api/artists?${params.toString()}`);
+  },
+
+  getArtistsAll: async () => { 
+      try {
+          const response = await api.get(`/api/artists/all`); 
+          
+          console.log("All Artists Response:", response);
+          
+          return response.data; 
+          
+      } catch (err) {
+          console.error("아티스트 목록 조회 실패:", err);
+          throw new Error(err.response?.data?.message || "아티스트 목록을 불러오는 데 실패했습니다.");
+      }
   },
 
   // 아티스트 상세 정보 조회
