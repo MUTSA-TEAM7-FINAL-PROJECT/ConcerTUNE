@@ -12,11 +12,11 @@ import org.springframework.data.repository.query.Param;
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     boolean existsByUserAndLive(User user, Live live);
 
-    @Query("SELECT b.live FROM Bookmark b WHERE b.user = :user ORDER BY b.createdAt DESC")
+    @Query("SELECT b.live FROM Bookmark b WHERE b.user = :user")
     Page<Live> findBookmarkedLivesByUser(@Param("user") User user, Pageable pageable);
 
     @Query("SELECT COUNT(b) FROM Bookmark b WHERE b.live.id = :liveId")
-    Long countByLiveId(@Param("liveId") Long liveId);
+    int countByLiveId(@Param("liveId") Long liveId);
 
     void deleteByUserAndLive(User user, Live live);
 }

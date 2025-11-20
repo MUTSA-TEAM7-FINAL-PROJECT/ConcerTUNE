@@ -1,13 +1,7 @@
 package com.team7.ConcerTUNE.repository;
 
-import com.team7.ConcerTUNE.entity.LiveRequest;
-import com.team7.ConcerTUNE.entity.RequestStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.team7.ConcerTUNE.entity.Live;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
-public interface LiveRequestRepository extends JpaRepository<LiveRequest, Long> {
-    Page<LiveRequest> findAllByRequestStatus(RequestStatus status, Pageable pageable);
+public interface LiveRequestRepository extends JpaRepository<Live, Long> {
 }

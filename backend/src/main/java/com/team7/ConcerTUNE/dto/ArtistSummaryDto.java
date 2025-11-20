@@ -13,6 +13,15 @@ public class ArtistSummaryDto {
     private String artistImageUrl;
     private long followerCount;
 
+    // 하나로 가능?
+    public static ArtistSummaryDto fromEntity(Artist artist) {
+        return ArtistSummaryDto.builder()
+                .artistId(artist.getArtistId())
+                .artistName(artist.getArtistName())
+                .artistImageUrl(artist.getArtistImageUrl())
+                .build();
+    }
+
     public static ArtistSummaryDto fromEntity(Artist artist, long followerCount) {
         return ArtistSummaryDto.builder()
                 .artistId(artist.getArtistId())

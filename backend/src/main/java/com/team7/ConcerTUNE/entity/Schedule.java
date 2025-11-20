@@ -28,7 +28,4 @@ public class Schedule extends BaseEntity{
 
   @Column(name = "live_time", nullable = false)
   private LocalTime liveTime;
-
-  @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<LiveSchedule> liveSchedules;
 }

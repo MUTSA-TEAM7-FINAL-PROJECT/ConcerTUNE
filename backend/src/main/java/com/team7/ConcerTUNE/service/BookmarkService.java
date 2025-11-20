@@ -22,7 +22,7 @@ public class BookmarkService {
     private final LiveRepository liveRepository;
 
     public boolean toggleBookmark(Long liveId, User user) {
-        Live live = liveRepository.findByIdAndNotDeleted(liveId)
+        Live live = liveRepository.findById(liveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Live not found"));
 
         boolean alreadyBookmarked = bookmarkRepository.existsByUserAndLive(user, live);
@@ -42,7 +42,7 @@ public class BookmarkService {
 
     @Transactional(readOnly = true)
     public boolean isBookmarked(Long liveId, User user) {
-        Live live = liveRepository.findByIdAndNotDeleted(liveId)
+        Live live = liveRepository.findById(liveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Live not found"));
 
         return bookmarkRepository.existsByUserAndLive(user, live);

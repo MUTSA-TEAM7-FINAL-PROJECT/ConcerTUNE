@@ -114,6 +114,7 @@ public class UserInitializer {
                     .ticketUrl("https://ticket.url/debut")
                     .venue("Seoul Live Hall")
                     .price(Map.of("VIP", 126000, "R", 66000))
+                    .writer(artistManagerUser)
                     .build();
 
             livesRepository.save(live);

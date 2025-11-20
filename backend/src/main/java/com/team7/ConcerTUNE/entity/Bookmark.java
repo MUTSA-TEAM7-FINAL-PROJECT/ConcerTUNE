@@ -8,20 +8,25 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Bookmark extends BaseEntity{
+public class Bookmark {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "bookmark_id")
-  private Long id;
+  @EmbeddedId
+  private BookmarkId bookmarkId = new BookmarkId();
 
+  @MapsId("liveId")
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "live_id", nullable = false)
+  @JoinColumn(name = "live_id", foreignKey = @ForeignKey(name = "fk_bm_live"))
   private Live live;
 
+  @MapsId("userId")
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_bm_user"))
   private User user;
+
+  @Builder
+  public Bookmark(User user, Live live) {
+    this.user = user;
+    this.live = live;
+    this.bookmarkId = new BookmarkId(user.getId(), live.getId());
+  }
 }

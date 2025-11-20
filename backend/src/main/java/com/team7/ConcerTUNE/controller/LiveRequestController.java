@@ -1,7 +1,8 @@
 package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.dto.LiveRequestRequest;
-import com.team7.ConcerTUNE.dto.LiveRequestResponse;
+import com.team7.ConcerTUNE.dto.LiveRequest;
+import com.team7.ConcerTUNE.dto.LiveResponse;
+import com.team7.ConcerTUNE.entity.Live;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.service.LiveRequestService;
@@ -27,28 +28,31 @@ public class LiveRequestController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<LiveRequestResponse> createRequest(@Valid @RequestBody LiveRequestRequest request, @AuthenticationPrincipal SimpleUserDetails principal) {
+    public ResponseEntity<LiveResponse> createRequest(
+            @Valid @RequestBody LiveRequest request,
+            @AuthenticationPrincipal SimpleUserDetails principal
+    ) {
         User user = userservice.findEntityById(principal.getUserId());
-        LiveRequestResponse response = liveRequestService.createRequest(request, user);
+        LiveResponse response = liveRequestService.createRequest(request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<LiveRequestResponse>> getAllRequests(
+    public ResponseEntity<Page<LiveResponse>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-            ) {
+    ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<LiveRequestResponse> liveRequests = liveRequestService.getAllRequests(pageable);
+        Page<LiveResponse> liveRequests = liveRequestService.getAllRequests(pageable);
         return ResponseEntity.ok(liveRequests);
     }
 
     @GetMapping("/{liveRequestId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LiveRequestResponse> getRequest(@PathVariable Long liveRequestId) {
-        LiveRequestResponse liveRequest = liveRequestService.getLiveRequest(liveRequestId);
-        return ResponseEntity.ok(liveRequest);
+    public ResponseEntity<LiveResponse> getRequest(@PathVariable Long liveRequestId) {
+        LiveResponse liveResponse = liveRequestService.getLiveRequest(liveRequestId);
+        return ResponseEntity.ok(liveResponse);
     }
 
     @PatchMapping("/{liveRequestId}/approve")
@@ -56,5 +60,15 @@ public class LiveRequestController {
     public ResponseEntity<Void> approveRequest(@PathVariable Long liveRequestId) {
         liveRequestService.approveRequest(liveRequestId);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{liveRequestId}/modify")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LiveResponse> modifyLive(
+            @PathVariable Long liveRequestId,
+            @Valid @RequestBody LiveRequest request
+    ) {
+        LiveResponse liveResponse = liveRequestService.modifyLive(liveRequestId, request);
+        return ResponseEntity.ok(liveResponse);
     }
 }
