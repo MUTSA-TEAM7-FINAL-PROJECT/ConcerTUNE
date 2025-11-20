@@ -1,32 +1,24 @@
 package com.team7.ConcerTUNE.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LiveRequestRequest {
-
+@Builder
+public class LiveRequest {
     private String title;
-
     private String description;
-
     private String posterUrl;
-
     private String ticketUrl;
-
     private String venue;
-
     private Map<String, Integer> price;
-
-    private Long userId;
-
+    private LocalDateTime ticketDateTime;
     private List<Long> artistIds;
+    private List<Long> scheduleIds;
 }

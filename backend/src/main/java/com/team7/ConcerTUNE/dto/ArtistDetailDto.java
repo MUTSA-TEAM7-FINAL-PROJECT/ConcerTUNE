@@ -20,7 +20,7 @@ public class ArtistDetailDto {
     private long followerCount;
 
     public static ArtistDetailDto fromEntity(Artist artist, long followerCount) {
-        Set<GenreDto> genreDtos = artist.getArtistGenres().stream()
+        Set<GenreDto> genreDto = artist.getArtistGenres().stream()
                 .map(artistGenre -> GenreDto.fromEntity(artistGenre.getGenre()))
                 .collect(Collectors.toSet());
 
@@ -30,7 +30,7 @@ public class ArtistDetailDto {
                 .snsUrl(artist.getSnsUrl())
                 .artistImageUrl(artist.getArtistImageUrl())
                 .isDomestic(artist.isDomestic())
-                .genres(genreDtos)
+                .genres(genreDto)
                 .followerCount(followerCount)
                 .build();
     }
