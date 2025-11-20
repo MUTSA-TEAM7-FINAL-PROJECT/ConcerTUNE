@@ -7,14 +7,17 @@ import com.team7.ConcerTUNE.service.FollowService;
 import com.team7.ConcerTUNE.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -67,31 +70,42 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{targetId}/is-following")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Map<String, Boolean>> isFollowing(
+            Authentication authentication,
+            @PathVariable Long targetId) {
+        boolean following = followService.isFollowing(authentication, targetId);
+        return ResponseEntity.ok(Map.of("isFollowing", following));
+    }
+
     //팔로우, 언팔로우
     @PostMapping("/{targetId}/follow")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> toggleFollow(
-            @AuthenticationPrincipal User follower,
+    public ResponseEntity<Map<String, Boolean>> toggleFollow(
+            Authentication authentication,
             @PathVariable Long targetId) {
-        followService.toggleFollow(follower, targetId);
-        return ResponseEntity.ok().build();
+        boolean following = followService.toggleFollow(authentication, targetId);
+        return ResponseEntity.ok(Map.of("isFollowing", following));
     }
 
-    //팔로워 유저들 조회
-    @GetMapping("/me/followers")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Page<UserFollowResponse>> getMyFollowers(
-            @AuthenticationPrincipal User user,
+    @GetMapping("/{userId}/followers")
+    public ResponseEntity<Page<UserFollowResponse>> getFollowers(
+            @PathVariable Long userId,
+            Authentication authentication,
             Pageable pageable) {
-        return ResponseEntity.ok(followService.getFollowers(user, pageable));
+
+        Page<UserFollowResponse> followers = followService.getFollowersByUserId(userId, pageable);
+        return ResponseEntity.ok(followers);
     }
 
-    //팔로잉 유저들 조회
-    @GetMapping("/me/following")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Page<UserFollowResponse>> getMyFollowing(
-            @AuthenticationPrincipal User user,
+    @GetMapping("/{userId}/followings")
+    public ResponseEntity<Page<UserFollowResponse>> getFollowings(
+            @PathVariable Long userId,
+            Authentication authentication,
             Pageable pageable) {
-        return ResponseEntity.ok(followService.getFollowings(user, pageable));
+
+        Page<UserFollowResponse> followings = followService.getFollowingsByUserId(userId, pageable);
+        return ResponseEntity.ok(followings);
     }
 }

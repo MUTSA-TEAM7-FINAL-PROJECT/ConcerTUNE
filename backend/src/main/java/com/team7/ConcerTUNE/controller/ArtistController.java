@@ -3,8 +3,11 @@ package com.team7.ConcerTUNE.controller;
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
 import com.team7.ConcerTUNE.entity.Artist;
+import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.entity.UserArtist;
 import com.team7.ConcerTUNE.service.ArtistService;
-import com.team7.ConcerTUNE.temp.dto.ArtistResponseDto;
+import com.team7.ConcerTUNE.service.AuthService;
+import com.team7.ConcerTUNE.temp.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,7 +30,6 @@ import java.util.stream.Collectors;
 public class ArtistController {
     private final ArtistService artistService;
 
-    // 아티스트 목록 조회
     @GetMapping
     public ResponseEntity<Page<ArtistSummaryDto>> getArtistList(
             @RequestParam(required = false) String name,
@@ -36,50 +39,53 @@ public class ArtistController {
         return ResponseEntity.ok(artistPage);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<ArtistResponseDto>> getAllArtists() {
-        List<ArtistResponseDto> artists = artistService.getAllArtists();
-        return ResponseEntity.ok(artists);
-    }
-
-
-    // 아티스트 상세 정보 조회
     @GetMapping("/{artistId}")
     public ResponseEntity<ArtistDetailDto> getArtistDetails(@PathVariable Long artistId) {
         ArtistDetailDto artistDto = artistService.getArtistById(artistId);
         return ResponseEntity.ok(artistDto);
     }
 
-    // 아티스트 팔로우 - 회원만 가능
+    @GetMapping("/{artistId}/follow/status")
+    public ResponseEntity<FollowStatusResponse> getFollowStatus(@PathVariable Long artistId, Authentication authentication) {
+        FollowStatusResponse response = artistService.getFollowStatus(artistId, authentication);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{artistId}/follow")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> followArtist(
+    public ResponseEntity<Void> toggleFollow(
             @PathVariable Long artistId,
             Authentication authentication
     ) {
-        artistService.followArtist(artistId, authentication);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        boolean isFollowed = artistService.toggleFollow(artistId, authentication);
+
+        return ResponseEntity.ok().build();
     }
 
-    // 아티스트 언팔로우 - 회원만 가능
-    @DeleteMapping("/{artistId}/follow")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> unfollowArtist(
+    @PutMapping("/{artistId}/image")
+    public ResponseEntity<Void> updateArtistImage(
             @PathVariable Long artistId,
+            @RequestBody UpdateArtistImageRequest request,
             Authentication authentication
     ) {
-        artistService.unfollowArtist(artistId, authentication);
-        return ResponseEntity.noContent().build();
+        artistService.updateArtistImage(artistId, request.getImageUrl(), authentication);
+        return ResponseEntity.ok().build();
     }
 
-    /* 아티스트 권한 유저의 공연 등록 요청
-    @PostMapping("/requests")
-    @PreAuthorize("hasRole('ARTIST')")
-    public ResponseEntity<Void> requestLiveConcert(
-            @Valid @RequestBody LiveRequestDto requestDto,
+    @PutMapping("/{artistId}")
+    public ResponseEntity<Void> updateArtist(
+            @PathVariable Long artistId,
+            @RequestBody UpdateArtistRequest request,
             Authentication authentication
-            ) {
-        artistService.requestLiveConcert(requestDto, authentication);
-        return ResponseEntity.accepted().build();
-    } */
+    ) {
+        artistService.updateArtist(
+                artistId,
+                request.getArtistName(),
+                request.getSnsUrl(),
+                request.getGenres(),
+                authentication
+        );
+        return ResponseEntity.ok().build();
+    }
 }
+

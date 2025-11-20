@@ -2,19 +2,21 @@ package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
-import com.team7.ConcerTUNE.entity.*;
-import com.team7.ConcerTUNE.exception.BadRequestException;
+import com.team7.ConcerTUNE.dto.GenreDto;
+import com.team7.ConcerTUNE.entity.Artist;
+import com.team7.ConcerTUNE.entity.ArtistGenre;
+import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.entity.UserArtist;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
-import com.team7.ConcerTUNE.repository.ArtistRepository;
-import com.team7.ConcerTUNE.repository.UserArtistRepository;
-import com.team7.ConcerTUNE.repository.UserRepository;
-import com.team7.ConcerTUNE.security.SimpleUserDetails;
-import com.team7.ConcerTUNE.temp.dto.ArtistResponseDto;
+import com.team7.ConcerTUNE.repository.*;
+import com.team7.ConcerTUNE.temp.dto.ArtistDetailResponse;
+import com.team7.ConcerTUNE.temp.dto.FollowStatusResponse;
 import com.team7.ConcerTUNE.temp.dto.NewArtistRequestDto;
+import com.team7.ConcerTUNE.temp.repository.ArtistGenreRepository;
+import com.team7.ConcerTUNE.temp.repository.GenreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +35,11 @@ public class ArtistService {
     private final UserRepository userRepository;
     private final UserArtistRepository userArtistRepository;
     private final NotificationService notificationService;
+    private final ArtistManagerRepository artistManagerRepository;
+    private final AuthService authService;
+    private final LivesRepository liveRepository;
+    private final GenreRepository genreRepository;
+    private final ArtistGenreRepository artistGenreRepository;
 
     // 아티스트 목록 조회
     @Transactional(readOnly = true)
@@ -49,17 +57,6 @@ public class ArtistService {
         });
     }
 
-    @Transactional(readOnly = true)
-    public List<ArtistResponseDto> getAllArtists() {
-        // 1. Repository를 통해 모든 아티스트 Entity를 조회
-        List<Artist> artists = artistRepository.findAll();
-
-        // 2. Entity 리스트를 DTO 리스트로 변환
-        return artists.stream()
-                .map(ArtistResponseDto::fromEntity)
-                .collect(Collectors.toList());
-    }
-
     // 아티스트 상세 정보 조회
     @Transactional(readOnly = true)
     public ArtistDetailDto getArtistById(Long artistId) {
@@ -69,31 +66,30 @@ public class ArtistService {
         return ArtistDetailDto.fromEntity(artist, followerCount);
     }
 
-    // 아티스트 팔로우
-    @Transactional
-    public void followArtist(Long artistId, Authentication authentication) {
-        User user = getUserFromAuth(authentication);
-        Artist artist = findArtistById(artistId);
-
-        if (userArtistRepository.existsByUserAndArtist(user, artist)) {
-            throw new BadRequestException("이미 팔로우한 아티스트입니다");
-        }
-
-        UserArtist follow = UserArtist.builder()
-                .user(user)
-                .artist(artist)
-                .build();
-        userArtistRepository.save(follow);
+    public FollowStatusResponse getFollowStatus(Long artistId, Authentication authentication) {
+        User user = authService.getUserFromAuth(authentication);
+        boolean isFollowing = userArtistRepository.findByUserIdAndArtistId(user.getId(), artistId).isPresent();
+        return new FollowStatusResponse(artistId, isFollowing);
     }
 
-    // 아티스트 언팔로우
     @Transactional
-    public void unfollowArtist(Long artistId, Authentication authentication) {
-        User user = getUserFromAuth(authentication);
+    public boolean toggleFollow(Long artistId, Authentication authentication) {
+        User user = authService.getUserFromAuth(authentication);
         Artist artist = findArtistById(artistId);
-        UserArtist follow = userArtistRepository.findByUserAndArtist(user, artist)
-                .orElseThrow(() -> new ResourceNotFoundException("팔로우 관계를 찾을 수 없습니다"));
-        userArtistRepository.delete(follow);
+
+        return userArtistRepository.findByUserAndArtist(user, artist)
+                .map(follow -> {
+                    userArtistRepository.delete(follow);
+                    return false;
+                })
+                .orElseGet(() -> {
+                    UserArtist newFollow = UserArtist.builder()
+                            .user(user)
+                            .artist(artist)
+                            .build();
+                    userArtistRepository.save(newFollow);
+                    return true;
+                });
     }
 
     @Transactional
@@ -105,39 +101,6 @@ public class ArtistService {
         return artistRepository.save(newArtist);
     }
 
-    /* 아티스트 권한 유저의 공연 등록 요청
-    @Transactional
-    public void requestLiveConcert(LiveRequestDto requestDto, Authentication authentication) {
-        User managerUser = getUserFromAuth(authentication);
-        Artist artist = artistRepository.findByManager(managerUser)
-                .orElseThrow(() -> new AccessDeniedException("공연을 등록할 아티스트 권한이 없거나 매핑된 아티스트가 없습니다"));
-
-        LiveRequest request = LiveRequest.builder()
-                .title(requestDto.getTitle())
-                .description(requestDto.getDescription())
-                .posterUrl(requestDto.getPosterUrl())
-                .ticketUrl(requestDto.getTicketUrl())
-                .venue(requestDto.getVenue())
-                .price(requestDto.getPrice())
-                .artist(artist)
-                .requestStatus(RequestStatus.PENDING)
-                .build();
-        liveRequestRepository.save(request);
-
-        String content = artist.getArtistName() + "의 새 공연 등록 요청이 있습니다.";
-        String link = "/admin/requests/" + request.getRequestId();
-        notificationService.createNotificationForAdmins(content, link);
-    } */
-
-    // 유틸리티 메서드 - 중복 코드 방지
-    private User getUserFromAuth(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof SimpleUserDetails)) {
-            throw new BadRequestException("유효한 로그인 정보가 없습니다");
-        }
-        SimpleUserDetails userDetails = (SimpleUserDetails) authentication.getPrincipal();
-        return userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + userDetails.getUserId()));
-    }
 
     private Artist findArtistById(Long artistId) {
         return artistRepository.findById(artistId)
@@ -157,5 +120,105 @@ public class ArtistService {
                 .collect(Collectors.toList());
 
         return artistNames;
+    }
+
+    @Transactional(readOnly = true)
+    public ArtistDetailResponse getArtistDetail(Long artistId, Authentication authentication) {
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아티스트입니다. ID: " + artistId));
+
+        User user = null;
+        boolean isFollowing = false;
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            user = authService.getUserFromAuth(authentication);
+            // 1. 현재 사용자 팔로우 상태 확인 (UserArtistRepository 사용)
+            isFollowing = userArtistRepository.existsByUserAndArtist(user, artist);
+        }
+
+        // 2. 팔로워 수 조회 (UserArtistRepository 사용)
+        Long followerCount = userArtistRepository.countByArtist(artist);
+
+        // 3. 관련 공연 정보 조회 (기존 로직 유지)
+        List<ArtistDetailResponse.LiveInfoResponse> relatedLives = liveRepository.findLivesByArtistId(artistId)
+                .stream()
+                .map(live -> ArtistDetailResponse.LiveInfoResponse.builder()
+                        .liveId(live.getId())
+                        .title(live.getTitle())
+                        .posterUrl(live.getPosterUrl())
+                        .venue(live.getVenue())
+                        .scheduleDates(live.getLiveSchedules().stream()
+                                .map(liveSchedule -> liveSchedule.getSchedule().getLiveDate().toString())
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
+
+
+        return ArtistDetailResponse.from(artist, isFollowing, followerCount, relatedLives);
+    }
+
+    @Transactional
+    public boolean toggleArtistFollow(Long artistId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            // 커스텀 예외로 변경하는 것을 권장합니다.
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+        User user = authService.getUserFromAuth(authentication);
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아티스트입니다. ID: " + artistId));
+
+        // 💡 UserArtist 엔티티를 찾아 팔로우 상태를 확인
+        Optional<UserArtist> existingFollow = userArtistRepository.findByUserAndArtist(user, artist);
+
+        if (existingFollow.isPresent()) {
+            // 언팔로우: 기존 엔티티 삭제
+            userArtistRepository.delete(existingFollow.get());
+            return false;
+        } else {
+            // 팔로우: 새 엔티티 저장
+            UserArtist newFollow = UserArtist.builder()
+                    .user(user)
+                    .artist(artist)
+                    .build();
+            userArtistRepository.save(newFollow);
+            return true;
+        }
+    }
+
+    public void updateArtistImage(Long artistId, String imageUrl,Authentication authentication) {
+        User user = authService.getUserFromAuth(authentication);
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아티스트입니다. ID: " + artistId));
+
+        artistManagerRepository.findByIdUserIdAndIdArtistId(user.getId(), artistId)
+                .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다 " + artistId));
+
+        artist.setArtistImageUrl(imageUrl);
+    }
+
+    public void updateArtist(Long artistId, String artistName, String snsUrl, List<GenreDto> genres, Authentication authentication) {
+        User user = authService.getUserFromAuth(authentication);
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아티스트입니다. ID: " + artistId));
+
+        artistManagerRepository.findByIdUserIdAndIdArtistId(user.getId(), artistId)
+                .orElseThrow(() -> new IllegalArgumentException("권한이 없습니다 " + artistId));
+
+        artist.setArtistName(artistName);
+        artist.setSnsUrl(snsUrl);
+
+        if (genres != null) {
+            artistGenreRepository.deleteByArtistId(artistId);
+
+            for (GenreDto g : genres) {
+                genreRepository.findById(g.getGenreId()).ifPresent(genre -> {
+                    ArtistGenre artistGenre = new ArtistGenre();
+                    artistGenre.setArtist(artist);
+                    artistGenre.setGenre(genre);
+                    artist.getArtistGenres().add(artistGenre);
+                });
+            }
+        }
+
     }
 }

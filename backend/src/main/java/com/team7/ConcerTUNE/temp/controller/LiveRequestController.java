@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ public class LiveRequestController {
     private final LiveRequestService liveRequestService;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LiveRequestResponse> createLiveRequest(
             @RequestBody LiveRequestCreateDto dto,
             Authentication authentication
@@ -30,14 +32,28 @@ public class LiveRequestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/my-list")
+    @PreAuthorize("isAuthenticated()") // 로그인한 사용자만 본인 목록을 볼 수 있도록 제한
+    public ResponseEntity<Page<LiveRequestResponse>> getMyLiveRequestList(
+            Pageable pageable,
+            Authentication authentication
+    ) {
+        // Service 메서드는 Authentication 객체에서 현재 사용자의 ID를 추출하여 목록을 필터링해야 합니다.
+        return ResponseEntity.ok(liveRequestService.findMyLiveRequests(pageable, authentication));
+    }
+
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<LiveRequestResponse>> getLiveRequestList(Pageable pageable) {
-        // TODO: 인증된 사용자(관리자) 권한 검증 로직 추가
         return ResponseEntity.ok(liveRequestService.findAllLiveRequests(pageable));
     }
 
     @PatchMapping("/{id}/response")
-    public ResponseEntity<LiveRequestResponse> respondToLiveRequest(@PathVariable Long id, @RequestBody LiveRequestUpdateStatusDto dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LiveRequestResponse> respondToLiveRequest(
+            @PathVariable Long id,
+            @RequestBody LiveRequestUpdateStatusDto dto
+    ) {
         return ResponseEntity.ok(liveRequestService.respondToLiveRequest(id, dto));
     }
 }

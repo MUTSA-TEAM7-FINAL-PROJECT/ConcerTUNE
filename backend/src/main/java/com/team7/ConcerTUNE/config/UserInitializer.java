@@ -12,8 +12,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
 @Configuration
@@ -28,271 +32,351 @@ public class UserInitializer {
     private final ArtistManagerRepository artistManagerRepository;
     private final GenreRepository genreRepository;
     private final ArtistGenreRepository artistGenreRepository;
-
-    // 💡 추가된 Repository
     private final SchedulesRepository schedulesRepository;
     private final LiveSchedulesRepository liveSchedulesRepository;
 
-    // 사용할 포스터 이미지 URL 목록
+    // 포스터 이미지 (랜덤 배정용)
     private static final List<String> POSTER_URLS = Arrays.asList(
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsP2JWoHzrD-LEgtz89wfwJM_-RWfHEW45Tg&s",
-            "https://file.newswire.co.kr/data/datafile2/thumb_640/2020/10/2948802425_20201030102144_7402605803.jpg",
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8jjfaX2dNaQAZ4YvPBUdgkFewvbhidCAj8g&s",
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcxMsDE1ip_nbnq_opEhqQjTaYGY38ZjCHlA&s"
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsP2JWoHzrD-LEgtz89wfwJM_-RWfHEW45Tg&s", // 콘서트 1
+            "https://file.newswire.co.kr/data/datafile2/thumb_640/2020/10/2948802425_20201030102144_7402605803.jpg", // 콘서트 2
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8jjfaX2dNaQAZ4YvPBUdgkFewvbhidCAj8g&s", // 콘서트 3
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcxMsDE1ip_nbnq_opEhqQjTaYGY38ZjCHlA&s", // 콘서트 4
+            "https://i.pinimg.com/736x/a3/6b/72/a36b72697834393d82233d27d4415671.jpg", // 페스티벌 느낌
+            "https://tickets.interpark.com/contents/_next/image?url=https%3A%2F%2Fticketimage.interpark.com%2FPlay%2Fimage%2Flarge%2F23%2F23006712_p.gif&w=3840&q=75" // 클래식/발라드
     );
 
-    // 20명의 아티스트 데이터 정의 (장르 포함)
-    private static final List<Map.Entry<String, List<String>>> ARTIST_GENRE_MAP = Arrays.asList(
-            Map.entry("ConcertUNE 공식 아티스트", Arrays.asList("팝", "케이팝", "댄스")),
-            Map.entry("인디 밴드: 에코", Arrays.asList("인디", "록", "포크")),
-            Map.entry("클래식 피아니스트: 제인", Arrays.asList("클래식", "재즈", "앰비언트")),
-            Map.entry("랩퍼: 다이나믹 K", Arrays.asList("힙합", "알앤비")),
-            Map.entry("트로트 여왕: 송가요", Arrays.asList("트로트", "발라드")),
-            Map.entry("메탈 밴드: 스틸레인", Arrays.asList("메탈", "록")),
-            Map.entry("포크 싱어: 김나무", Arrays.asList("포크", "어쿠스틱")),
-            Map.entry("일렉트로닉 DJ: 퓨처B", Arrays.asList("일렉트로닉", "하우스")),
-            Map.entry("퓨전 국악단: 아리랑", Arrays.asList("퓨전", "월드 뮤직")),
-            Map.entry("댄스 그룹: 스파크", Arrays.asList("댄스", "팝")),
-            Map.entry("R&B 보컬: 리오", Arrays.asList("알앤비", "소울")),
-            Map.entry("앰비언트 사운드: 이터널", Arrays.asList("앰비언트", "일렉트로닉")),
-            Map.entry("테크노 프로듀서: 제로", Arrays.asList("테크노", "트랜스")),
-            Map.entry("가스펠 코러스: 헤븐스", Arrays.asList("가스펠")),
-            Map.entry("OST 마스터: 사운드맨", Arrays.asList("OST/사운드트랙")),
-            Map.entry("오페라 바리톤: 강철", Arrays.asList("오페라", "클래식")),
-            Map.entry("컨트리 듀오: 더 로드", Arrays.asList("컨트리", "포크")),
-            Map.entry("블루스 기타: 찰리", Arrays.asList("블루스", "재즈")),
-            Map.entry("레게 뮤지션: 자메이카맨", Arrays.asList("레게")),
-            Map.entry("뉴에이지 밴드: 미스트", Arrays.asList("앰비언트", "클래식"))
+    // 공연 장소 목록
+    private static final List<String> VENUES = Arrays.asList(
+            "서울 올림픽 체조경기장 (KSPO DOME)", "고척 스카이돔", "잠실 주경기장",
+            "예술의 전당 콘서트홀", "블루스퀘어 마스터카드홀", "YES24 라이브홀",
+            "KBS 아레나", "세종문화회관 대극장", "홍대 롤링홀", "부산 벡스코 오디토리움"
     );
-
 
     @Bean
     public CommandLineRunner initDefaultUser(PasswordEncoder passwordEncoder) {
         return args -> {
-            System.out.println("--- 초기 유저 설정 ---");
-            String encodedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
+            System.out.println("🚀 [UserInitializer] 초기 데이터 생성을 시작합니다...");
             Random random = new Random();
 
-            // ------------------------------------
-            // 1. 유저 생성 및 저장 (유지)
-            // ------------------------------------
-            User defaultUser1 = User.builder()
-                    .email("user1@naver.com")
-                    .password(encodedPassword)
-                    .username(DEFAULT_USERNAME + "1")
-                    .auth(AuthRole.USER)
-                    .provider(AuthProvider.LOCAL)
-                    .enabled(true)
-                    .build();
+            // ==========================================
+            // 1. 유저 생성 (기존 유지)
+            // ==========================================
+            if (userRepository.count() == 0) {
+                createUsers(passwordEncoder);
+            }
 
-            User defaultUser2 = User.builder()
-                    .email("user2@naver.com")
-                    .password(encodedPassword)
-                    .username(DEFAULT_USERNAME + "2")
-                    .auth(AuthRole.ARTIST)
-                    .provider(AuthProvider.LOCAL)
-                    .enabled(true)
-                    .build();
+            // ==========================================
+            // 2. 장르 생성 (기존 유지)
+            // ==========================================
+            Map<String, Genre> genreMap = createGenres();
 
-            User defaultUser3 = User.builder()
-                    .email("user3@naver.com")
-                    .password(passwordEncoder.encode(DEFAULT_PASSWORD))
-                    .username(DEFAULT_USERNAME + "3")
-                    .auth(AuthRole.ADMIN)
-                    .provider(AuthProvider.LOCAL)
-                    .enabled(true)
-                    .build();
+            // ==========================================
+            // 3. 아티스트 생성 (약 100명)
+            // ==========================================
+            // 아티스트 데이터 준비 (이름, 장르)
+            List<ArtistData> artistDataList = prepareArtistData();
+            List<Artist> savedArtists = new ArrayList<>();
 
-            userRepository.save(defaultUser1);
-            userRepository.save(defaultUser2);
-            userRepository.save(defaultUser3);
+            // 매니저 유저 (아티스트 연결용)
+            User managerUser = userRepository.findByEmail("manager@company.com").orElse(null);
 
-            User artistManagerUser = User.builder()
-                    .email("manager@company.com")
-                    .password(passwordEncoder.encode("supermanager"))
-                    .username("SuperManager")
-                    .auth(AuthRole.USER)
-                    .provider(AuthProvider.LOCAL)
-                    .enabled(true)
-                    .build();
-            userRepository.save(artistManagerUser);
-            System.out.println("--- 1-1. 단일 매니저 유저 생성 완료 ---");
+            System.out.println("--- 3. 아티스트 " + artistDataList.size() + "명 생성 중... ---");
 
+            for (int i = 0; i < artistDataList.size(); i++) {
+                ArtistData data = artistDataList.get(i);
 
-            // ------------------------------------
-            // 2. 장르 생성 및 저장 (유지)
-            // ------------------------------------
-            System.out.println("--- 2. 장르 데이터 설정 ---");
-            List<String> genreNames = Arrays.asList(
-                    "팝", "록", "힙합", "알앤비", "재즈", "클래식",
-                    "일렉트로닉", "포크", "컨트리", "블루스", "케이팝",
-                    "인디", "발라드", "메탈", "레게", "앰비언트",
-                    "하우스", "테크노", "트랜스", "가스펠", "OST/사운드트랙",
-                    "오페라", "트로트", "댄스", "펑크", "어쿠스틱",
-                    "소울", "디스코", "퓨전", "월드 뮤직"
-            );
-
-            Map<String, Genre> genreMap = new HashMap<>();
-            genreNames.forEach(name -> {
-                Genre genre = Genre.builder().genreName(name).build();
-                Genre savedGenre = genreRepository.save(genre);
-                genreMap.put(name, savedGenre);
-            });
-            System.out.println("장르 " + genreNames.size() + "개 저장 완료.");
-
-
-            // ------------------------------------
-            // 3. 아티스트 생성 및 저장 (유지)
-            // ------------------------------------
-            System.out.println("--- 3. 아티스트 데이터 설정 (20명) ---");
-            List<Artist> artists = new ArrayList<>();
-            List<ArtistManager> managerLinks = new ArrayList<>();
-
-            for (int i = 0; i < ARTIST_GENRE_MAP.size(); i++) {
-                Map.Entry<String, List<String>> entry = ARTIST_GENRE_MAP.get(i);
-                String artistName = entry.getKey();
-
-                Artist newArtist = Artist.builder()
-                        .artistName(artistName)
-                        .isDomestic(i % 3 != 2)
-                        .snsUrl("https://sns.url/" + artistName.replace(" ", "").toLowerCase())
-                        .artistImageUrl("https://image.url/artist" + (i + 1) + ".jpg")
-                        .build();
-
-                Artist savedArtist = artistRepository.save(newArtist);
-                artists.add(savedArtist);
-
-                ArtistManagerId managerId = ArtistManagerId.builder()
-                        .userId(artistManagerUser.getId())
-                        .artistId(savedArtist.getArtistId())
-                        .build();
-                ArtistManager managerLink = ArtistManager.builder()
-                        .id(managerId)
-                        .user(artistManagerUser)
-                        .artist(savedArtist)
-                        .assignedAt(LocalDateTime.now())
+                // 아티스트 저장
+                Artist artist = Artist.builder()
+                        .artistName(data.name)
+                        .isDomestic(random.nextBoolean()) // 국내/해외 랜덤
+                        .snsUrl("https://instagram.com/" + data.name.replaceAll("\\s+", "").toLowerCase())
+                        .artistImageUrl("https://placehold.co/400x400/333/FFF?text=" + data.name.replaceAll("\\s+", "+"))
                         .isOfficial(true)
                         .build();
-                managerLinks.add(managerLink);
-            }
-            artistManagerRepository.saveAll(managerLinks);
-            System.out.println("아티스트-매니저 연결 " + managerLinks.size() + "개 저장 완료.");
 
+                Artist savedArtist = artistRepository.save(artist);
+                savedArtists.add(savedArtist);
 
-            // 3-1. 아티스트에 장르 연결 (유지)
-            System.out.println("--- 3-1. 아티스트-장르 연결 ---");
-            List<ArtistGenre> artistGenres = new ArrayList<>();
-
-            for (int i = 0; i < ARTIST_GENRE_MAP.size(); i++) {
-                Artist artist = artists.get(i);
-                List<String> genresToAssign = ARTIST_GENRE_MAP.get(i).getValue();
-
-                for (String genreName : genresToAssign) {
+                // 장르 연결
+                List<ArtistGenre> artistGenres = new ArrayList<>();
+                for (String genreName : data.genres) {
                     Genre genre = genreMap.get(genreName);
                     if (genre != null) {
-                        artistGenres.add(new ArtistGenre(artist, genre));
+                        artistGenres.add(new ArtistGenre(savedArtist, genre));
                     }
                 }
-            }
-            artistGenreRepository.saveAll(artistGenres);
-            System.out.println("아티스트-장르 연결 " + artistGenres.size() + "개 저장 완료.");
+                artistGenreRepository.saveAll(artistGenres);
 
-
-            // ------------------------------------
-            // 4. 공연 (Lives) 10개 생성, 아티스트, 그리고 일정 연결 (수정 완료)
-            // ------------------------------------
-            System.out.println("--- 4. 공연 데이터 설정 (10개) ---");
-
-            // 공통 좌석 가격 설정
-            Map<String, Integer> seatPrices = new HashMap<>();
-            seatPrices.put("VIP석", 120000);
-            seatPrices.put("R석", 99000);
-            seatPrices.put("S석", 77000);
-            seatPrices.put("A석", 55000);
-
-            List<String> liveTitles = Arrays.asList(
-                    "[Official] ConcerTUNE 데뷔 라이브",
-                    "에코 밴드 단독 콘서트 - The Sound of Echo",
-                    "제인 피아노 리사이틀: 쇼팽 야상곡",
-                    "케이팝 올스타 대전: K-Wave Festa",
-                    "힙합 나이트: 언더그라운드 잼",
-                    "재즈 & 블루스 스페셜 세션",
-                    "록 페스티벌: 메탈리카 헌정",
-                    "발라드 가든: 겨울 이야기",
-                    "일렉트로닉 댄스 파티: Future Beats",
-                    "트로트 대향연: 국민 가요제"
-            );
-
-            // 모든 스케줄 링크를 모으는 리스트
-            List<LiveSchedules> allLiveSchedulesLinks = new ArrayList<>();
-            int totalSchedules = 0;
-
-            for (int i = 0; i < 10; i++) {
-                String posterUrl = POSTER_URLS.get(random.nextInt(POSTER_URLS.size()));
-                Artist assignedArtist = artists.get(random.nextInt(artists.size()));
-
-                // 4-1. Lives 생성 및 저장
-                Lives live = Lives.builder()
-                        .title(liveTitles.get(i % liveTitles.size()))
-                        .description(assignedArtist.getArtistName() + "의 " + liveTitles.get(i % liveTitles.size()) + " 공연입니다. 이 공연은 테스트용으로 " + (i+1) + "회차 공연을 포함합니다.")
-                        .posterUrl(posterUrl)
-                        .ticketUrl("https://ticket.url/live" + (i + 1))
-                        .venue(i % 2 == 0 ? "서울 올림픽 경기장" : "부산 벡스코")
-                        .seatPrices(seatPrices)
-                        .build();
-
-                Lives savedLive = livesRepository.save(live);
-
-                // 4-2. 공연과 아티스트 연동 (LiveArtist 생성)
-                LiveArtist liveArtistLink = LiveArtist.builder()
-                        .live(savedLive)
-                        .artist(assignedArtist)
-                        .build();
-
-                liveArtistRepository.save(liveArtistLink);
-
-                // 💡 4-3. 공연 일정(Schedules) 및 연동 (LiveSchedules 생성)
-                LocalDateTime baseDateTime = LocalDateTime.now().plusDays(i * 5 + 10); // 미래 날짜로 설정
-
-                // 각 공연마다 3개의 스케줄 생성
-                for (int j = 0; j < 3; j++) {
-                    LocalDateTime scheduleDateTime = baseDateTime
-                            .plusDays(j) // 날짜 차이
-                            .withHour(19)
-                            .withMinute(j * 10)
-                            .withSecond(0).withNano(0);
-
-                    // Schedules 엔티티 생성 및 저장 (LocalDateTime 필드 사용 가정)
-                    Schedules scheduleEntity = Schedules.builder()
-                            // 💡 LocalDateTime에서 날짜만 추출하여 저장
-                            .liveDate(scheduleDateTime.toLocalDate())
-                            // 💡 LocalDateTime에서 시간만 추출하여 저장
-                            .liveTime(scheduleDateTime.toLocalTime())
+                // 앞쪽 10명만 매니저 연결 (테스트용)
+                if (i < 10 && managerUser != null) {
+                    ArtistManagerId managerId = new ArtistManagerId(managerUser.getId(), savedArtist.getArtistId());
+                    ArtistManager manager = ArtistManager.builder()
+                            .id(managerId)
+                            .user(managerUser)
+                            .artist(savedArtist)
+                            .assignedAt(LocalDateTime.now())
+                            .isOfficial(true)
                             .build();
-
-                    Schedules savedSchedule = schedulesRepository.save(scheduleEntity);
-
-                    // LiveSchedules 연결 엔티티 생성
-                    LiveSchedules liveScheduleLink = LiveSchedules.builder()
-                            .live(savedLive)
-                            .schedule(savedSchedule)
-                            .build();
-
-                    allLiveSchedulesLinks.add(liveScheduleLink);
-                    totalSchedules++;
+                    artistManagerRepository.save(manager);
                 }
             }
-
-            // 모든 LiveSchedules 일괄 저장
-            liveSchedulesRepository.saveAll(allLiveSchedulesLinks);
+            System.out.println("✅ 아티스트 생성 완료");
 
 
-            System.out.println("--- 초기 데이터 설정 완료 ---");
-            System.out.println("총 유저 수: " + userRepository.count() + "명");
-            System.out.println("총 아티스트 수: " + artistRepository.count() + "명");
-            System.out.println("총 공연 수: " + livesRepository.count() + "개");
-            System.out.println("총 일정 수 (Schedules): " + schedulesRepository.count() + "개"); // 💡 스케줄 수 확인
-            System.out.println("총 Live-Schedule 연결 수: " + liveSchedulesRepository.count() + "개"); // 💡 연결 수 확인
+            // ==========================================
+            // 4. 공연(Lives) 및 스케줄 생성 (30개)
+            // ==========================================
+            System.out.println("--- 4. 공연 및 스케줄 30개 생성 중... ---");
+
+            // 공통 좌석 가격
+            Map<String, Integer> defaultPrices = new HashMap<>();
+            defaultPrices.put("VIP석", 154000);
+            defaultPrices.put("R석", 132000);
+            defaultPrices.put("S석", 110000);
+            defaultPrices.put("A석", 99000);
+
+            List<LiveSchedules> allLiveSchedules = new ArrayList<>();
+
+            for (int i = 1; i <= 30; i++) {
+                // 공연 타입 결정 (0: 단독, 1: 합동, 2: 페스티벌)
+                int concertType = random.nextInt(10); // 0~5:단독(60%), 6~8:합동(30%), 9:페스티벌(10%)
+
+                List<Artist> selectedArtists = new ArrayList<>();
+                String title;
+                String venue = VENUES.get(random.nextInt(VENUES.size()));
+                String description;
+                int durationDays; // 공연 기간 (1~3일)
+
+                if (concertType < 6) {
+                    // [단독 공연]
+                    Artist soloArtist = savedArtists.get(random.nextInt(savedArtists.size()));
+                    selectedArtists.add(soloArtist);
+                    title = String.format("%s 월드 투어: THE DREAM", soloArtist.getArtistName());
+                    description = soloArtist.getArtistName() + "의 단독 내한 공연입니다. 최고의 무대를 만나보세요.";
+                    durationDays = random.nextInt(2) + 1; // 1 or 2일
+
+                } else if (concertType < 9) {
+                    // [합동 공연] - 2~3팀
+                    Collections.shuffle(savedArtists);
+                    selectedArtists.addAll(savedArtists.subList(0, random.nextInt(2) + 2));
+                    String mainArtistName = selectedArtists.get(0).getArtistName();
+                    title = String.format("%s & Friends 조인트 콘서트", mainArtistName);
+                    description = "최고의 아티스트들이 함께하는 특별한 밤! " + selectedArtists.stream().map(Artist::getArtistName).collect(Collectors.joining(", ")) + " 출연.";
+                    durationDays = 1; // 보통 하루
+
+                } else {
+                    // [페스티벌] - 5~8팀
+                    Collections.shuffle(savedArtists);
+                    selectedArtists.addAll(savedArtists.subList(0, random.nextInt(4) + 5));
+                    title = "2025 그랜드 민트 뮤직 페스티벌";
+                    description = "도심 속에서 즐기는 음악 축제! 역대급 라인업을 공개합니다.\nLine-up: " + selectedArtists.stream().map(Artist::getArtistName).collect(Collectors.joining(", "));
+                    venue = "난지 한강공원"; // 페스티벌은 야외
+                    durationDays = 3; // 3일
+                }
+
+                // Lives 저장
+                Lives live = Lives.builder()
+                        .title(title)
+                        .description(description)
+                        .posterUrl(POSTER_URLS.get(random.nextInt(POSTER_URLS.size())))
+                        .ticketUrl("https://ticket.site/booking/" + i)
+                        .venue(venue)
+                        .seatPrices(defaultPrices)
+                        .build();
+                Lives savedLive = livesRepository.save(live);
+
+                // LiveArtist 연결
+                for (Artist artist : selectedArtists) {
+                    liveArtistRepository.save(LiveArtist.builder()
+                            .live(savedLive)
+                            .artist(artist)
+                            .build());
+                }
+
+                // 스케줄 생성 (durationDays 만큼)
+                LocalDate startDate = LocalDate.now().plusDays(random.nextInt(90) + 10); // 10일 ~ 100일 뒤
+
+                for (int day = 0; day < durationDays; day++) {
+                    LocalDate concertDate = startDate.plusDays(day);
+                    LocalTime concertTime = (concertDate.getDayOfWeek().getValue() >= 6) ? LocalTime.of(17, 0) : LocalTime.of(19, 30); // 주말 5시, 평일 7시 반
+
+                    Schedules schedule = Schedules.builder()
+                            .liveDate(concertDate)
+                            .liveTime(concertTime)
+                            .build();
+                    Schedules savedSchedule = schedulesRepository.save(schedule);
+
+                    // Live - Schedule 연결
+                    allLiveSchedules.add(LiveSchedules.builder()
+                            .live(savedLive)
+                            .schedule(savedSchedule)
+                            .build());
+                }
+            }
+            liveSchedulesRepository.saveAll(allLiveSchedules);
+
+            System.out.println("✅ 공연 및 스케줄 생성 완료");
+            System.out.println("-----------------------------------------");
+            System.out.println("총 아티스트 수: " + artistRepository.count());
+            System.out.println("총 공연 수: " + livesRepository.count());
+            System.out.println("총 스케줄 수: " + schedulesRepository.count());
+            System.out.println("-----------------------------------------");
         };
+    }
+
+    // ---------------- Helper Methods ----------------
+
+    private void createUsers(PasswordEncoder passwordEncoder) {
+        String encodedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
+
+        userRepository.save(User.builder().email("user1@naver.com").password(encodedPassword).username("김철수").auth(AuthRole.USER).provider(AuthProvider.LOCAL).enabled(true).build());
+        userRepository.save(User.builder().email("artist@naver.com").password(encodedPassword).username("아이유").auth(AuthRole.ARTIST).provider(AuthProvider.LOCAL).enabled(true).build());
+        userRepository.save(User.builder().email("admin@naver.com").password(encodedPassword).username("관리자").auth(AuthRole.ADMIN).provider(AuthProvider.LOCAL).enabled(true).build());
+        userRepository.save(User.builder().email("manager@company.com").password(passwordEncoder.encode("supermanager")).username("SuperManager").auth(AuthRole.USER).provider(AuthProvider.LOCAL).enabled(true).build());
+
+        System.out.println("기본 유저 4명 생성 완료.");
+    }
+
+    private Map<String, Genre> createGenres() {
+        List<String> genreNames = Arrays.asList(
+                "팝", "록", "힙합", "알앤비", "재즈", "클래식", "일렉트로닉", "포크", "컨트리", "블루스",
+                "케이팝", "인디", "발라드", "메탈", "레게", "앰비언트", "하우스", "테크노", "트랜스",
+                "가스펠", "OST/사운드트랙", "오페라", "트로트", "댄스", "펑크", "어쿠스틱", "소울", "디스코", "퓨전", "월드 뮤직"
+        );
+        Map<String, Genre> genreMap = new HashMap<>();
+        for (String name : genreNames) {
+                genreMap.put(name, genreRepository.save(Genre.builder().genreName(name).build()));
+        }
+        return genreMap;
+    }
+
+    // 약 100명의 아티스트 데이터를 생성하여 반환
+    private List<ArtistData> prepareArtistData() {
+        List<ArtistData> list = new ArrayList<>();
+
+        // K-Pop (20)
+        list.add(new ArtistData("BTS", "케이팝", "팝"));
+        list.add(new ArtistData("BLACKPINK", "케이팝", "댄스"));
+        list.add(new ArtistData("NewJeans", "케이팝", "팝"));
+        list.add(new ArtistData("IVE", "케이팝", "댄스"));
+        list.add(new ArtistData("SEVENTEEN", "케이팝", "팝"));
+        list.add(new ArtistData("LE SSERAFIM", "케이팝", "댄스"));
+        list.add(new ArtistData("Stray Kids", "케이팝", "힙합"));
+        list.add(new ArtistData("TWICE", "케이팝", "댄스"));
+        list.add(new ArtistData("EXO", "케이팝", "알앤비"));
+        list.add(new ArtistData("NCT 127", "케이팝", "힙합"));
+        list.add(new ArtistData("Red Velvet", "케이팝", "알앤비"));
+        list.add(new ArtistData("aespa", "케이팝", "일렉트로닉"));
+        list.add(new ArtistData("TXT", "케이팝", "록"));
+        list.add(new ArtistData("ENHYPEN", "케이팝", "팝"));
+        list.add(new ArtistData("ATEEZ", "케이팝", "힙합"));
+        list.add(new ArtistData("ITZY", "케이팝", "댄스"));
+        list.add(new ArtistData("MAMAMOO", "케이팝", "소울"));
+        list.add(new ArtistData("Taeyeon", "케이팝", "발라드"));
+        list.add(new ArtistData("IU", "케이팝", "발라드", "어쿠스틱"));
+        list.add(new ArtistData("Psy", "케이팝", "댄스"));
+
+        // Ballad & R&B (15)
+        list.add(new ArtistData("박효신", "발라드", "소울"));
+        list.add(new ArtistData("성시경", "발라드"));
+        list.add(new ArtistData("Crush", "알앤비", "힙합"));
+        list.add(new ArtistData("Heize", "알앤비", "힙합"));
+        list.add(new ArtistData("Zion.T", "알앤비", "힙합"));
+        list.add(new ArtistData("폴킴", "발라드", "어쿠스틱"));
+        list.add(new ArtistData("10CM", "인디", "어쿠스틱"));
+        list.add(new ArtistData("멜로망스", "발라드", "인디"));
+        list.add(new ArtistData("볼빨간사춘기", "인디", "팝"));
+        list.add(new ArtistData("AKMU", "케이팝", "포크"));
+        list.add(new ArtistData("백예린", "알앤비", "인디"));
+        list.add(new ArtistData("Dean", "알앤비", "힙합"));
+        list.add(new ArtistData("이하이", "알앤비", "소울"));
+        list.add(new ArtistData("김동률", "발라드"));
+        list.add(new ArtistData("이적", "발라드", "록"));
+
+        // Rock & Indie (20)
+        list.add(new ArtistData("자우림", "록", "얼터너티브"));
+        list.add(new ArtistData("YB", "록", "하드록"));
+        list.add(new ArtistData("국카스텐", "록", "사이키델릭"));
+        list.add(new ArtistData("잔나비", "인디", "록"));
+        list.add(new ArtistData("새소년", "인디", "록"));
+        list.add(new ArtistData("혁오", "인디", "록"));
+        list.add(new ArtistData("검정치마", "인디", "록"));
+        list.add(new ArtistData("카더가든", "인디", "록"));
+        list.add(new ArtistData("실리카겔", "인디", "록"));
+        list.add(new ArtistData("NELL", "록", "모던록"));
+        list.add(new ArtistData("DAY6", "케이팝", "록"));
+        list.add(new ArtistData("N.Flying", "케이팝", "록"));
+        list.add(new ArtistData("LUCY", "케이팝", "인디"));
+        list.add(new ArtistData("쏜애플", "인디", "록"));
+        list.add(new ArtistData("브로콜리너마저", "인디", "포크"));
+        list.add(new ArtistData("언니네이발관", "인디", "모던록"));
+        list.add(new ArtistData("장기하와 얼굴들", "인디", "록"));
+        list.add(new ArtistData("노브레인", "펑크", "록"));
+        list.add(new ArtistData("크라잉넛", "펑크", "록"));
+        list.add(new ArtistData("부활", "록"));
+
+        // Hip-hop (15)
+        list.add(new ArtistData("Jay Park", "힙합", "알앤비"));
+        list.add(new ArtistData("Zico", "힙합", "케이팝"));
+        list.add(new ArtistData("Epik High", "힙합"));
+        list.add(new ArtistData("Dynamic Duo", "힙합"));
+        list.add(new ArtistData("Loco", "힙합"));
+        list.add(new ArtistData("Gray", "힙합", "알앤비"));
+        list.add(new ArtistData("Simon Dominic", "힙합"));
+        list.add(new ArtistData("E-Sens", "힙합"));
+        list.add(new ArtistData("Beenzino", "힙합"));
+        list.add(new ArtistData("Changmo", "힙합"));
+        list.add(new ArtistData("Giriboy", "힙합"));
+        list.add(new ArtistData("Kid Milli", "힙합"));
+        list.add(new ArtistData("Justhis", "힙합"));
+        list.add(new ArtistData("Superbee", "힙합"));
+        list.add(new ArtistData("Ash Island", "힙합"));
+
+        // Classic, Jazz, Others (15)
+        list.add(new ArtistData("조성진", "클래식"));
+        list.add(new ArtistData("임윤찬", "클래식"));
+        list.add(new ArtistData("손열음", "클래식"));
+        list.add(new ArtistData("이루마", "뉴에이지", "클래식"));
+        list.add(new ArtistData("나윤선", "재즈"));
+        list.add(new ArtistData("웅산", "재즈"));
+        list.add(new ArtistData("Winterplay", "재즈", "팝"));
+        list.add(new ArtistData("송가인", "트로트"));
+        list.add(new ArtistData("임영웅", "트로트", "발라드"));
+        list.add(new ArtistData("영탁", "트로트"));
+        list.add(new ArtistData("이찬원", "트로트"));
+        list.add(new ArtistData("장윤정", "트로트"));
+        list.add(new ArtistData("홍진영", "트로트"));
+        list.add(new ArtistData("나훈아", "트로트"));
+        list.add(new ArtistData("조용필", "록", "발라드")); // 레전드
+
+        // Foreign Artists (Mock for variety) (15)
+        list.add(new ArtistData("Coldplay", "록", "팝"));
+        list.add(new ArtistData("Taylor Swift", "팝", "컨트리"));
+        list.add(new ArtistData("Bruno Mars", "팝", "알앤비"));
+        list.add(new ArtistData("Ed Sheeran", "팝", "어쿠스틱"));
+        list.add(new ArtistData("Adele", "팝", "소울"));
+        list.add(new ArtistData("Justin Bieber", "팝", "알앤비"));
+        list.add(new ArtistData("The Weeknd", "알앤비", "일렉트로닉"));
+        list.add(new ArtistData("Dua Lipa", "팝", "댄스"));
+        list.add(new ArtistData("Billie Eilish", "팝", "얼터너티브"));
+        list.add(new ArtistData("Imagine Dragons", "록"));
+        list.add(new ArtistData("Maroon 5", "팝", "록"));
+        list.add(new ArtistData("Charlie Puth", "팝"));
+        list.add(new ArtistData("Post Malone", "힙합", "록"));
+        list.add(new ArtistData("Drake", "힙합", "알앤비"));
+        list.add(new ArtistData("Eminem", "힙합"));
+
+        return list;
+    }
+
+    // Helper DTO Class
+    private static class ArtistData {
+        String name;
+        List<String> genres;
+
+        ArtistData(String name, String... genres) {
+            this.name = name;
+            this.genres = Arrays.asList(genres);
+        }
     }
 }

@@ -27,14 +27,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "ORDER BY p.likeCount DESC, p.createdAt DESC")
     List<Post> findTop3WeeklyPosts(LocalDateTime oneWeekAgo, Pageable pageable);
 
-    @Query("SELECT p.id, p.title, w.username, COUNT(pl_all) " +
+    @Query("SELECT p.id, p.title, w.username, COUNT(pl_all), l.title " +
             "FROM Bookmarks b " +
             "JOIN b.live l " +
             "JOIN Post p ON p.live = l " +
             "JOIN p.writer w " +
             "LEFT JOIN p.likes pl_all " +
             "WHERE b.user.id = :userId " +
-            "GROUP BY p.id, p.title, w.username, p.createdAt " +
+            "GROUP BY p.id, p.title, w.username, p.createdAt, l.title " +
             "ORDER BY p.createdAt DESC")
     List<Object[]> findBookmarkedPostsRawData(@Param("userId") Long userId) ;
+
+    List<Post> findByWriterId(Long userId);
+
 }

@@ -162,7 +162,8 @@ public class CommunityService {
                             (Long) row[0],
                             (String) row[1],
                             (String) row[2],
-                            ((Number) row[3]).longValue()
+                            ((Number) row[3]).longValue(),
+                            (String) row[4]
                     );
                 })
                 .filter(dto -> dto != null)

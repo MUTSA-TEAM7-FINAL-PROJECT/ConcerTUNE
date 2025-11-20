@@ -65,6 +65,9 @@ public class LiveRequest {
             foreignKey = @ForeignKey(name = "fk_live_request_requester"))
     private User requester;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", length = 20, nullable = false)
     private RequestStatus requestStatus = RequestStatus.PENDING;

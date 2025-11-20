@@ -21,10 +21,12 @@ public class LiveRequestResponse {
     private String venue;
     private Map<String, Integer> seatPrices;
     private List<Long> artistIds;
-    private List<String> artistNames; // 💡 이 필드를 설정해야 합니다.
+    private List<String> artistNames;
     private Long requesterId;
+    private List<ScheduleDto> schedules;
     private String requester;
     private RequestStatus requestStatus;
+    private String rejectionReason;
     private LocalDateTime requestCreatedAt;
     private LocalDateTime statusUpdatedAt;
 
@@ -41,18 +43,16 @@ public class LiveRequestResponse {
                 .ticketUrl(liveRequest.getTicketUrl())
                 .venue(liveRequest.getVenue())
                 .seatPrices(liveRequest.getSeatPrices())
-
                 .artistIds(liveRequest.getArtistIds())
                 .artistNames(artistNames)
-
+                .rejectionReason(liveRequest.getRejectionReason())
                 .requesterId(liveRequest.getRequester().getId())
                 .requester(liveRequest.getRequester().getUsername())
                 .requestStatus(liveRequest.getRequestStatus())
                 .requestCreatedAt(liveRequest.getRequestCreatedAt())
                 .statusUpdatedAt(liveRequest.getStatusUpdatedAt())
-
                 .newArtistRequestsData(liveRequest.getNewArtistRequestData())
-
+                .schedules(liveRequest.getRequestedSchedules())
                 .build();
     }
 }

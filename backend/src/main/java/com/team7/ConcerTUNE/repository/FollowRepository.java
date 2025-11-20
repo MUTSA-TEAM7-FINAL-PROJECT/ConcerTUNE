@@ -20,8 +20,16 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     boolean existsByFollowerAndFollowing(User follower, User following);
 
+    boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
+
     void deleteByFollowerAndFollowing(User follower, User following);
 
     @Query(value = "SELECT f.artist_id FROM follows f WHERE f.user_id = :userId", nativeQuery = true)
     List<Long> findFollowedArtistIdsByUserId(@Param("userId") Long userId);
+
+    int countByFollowingId(Long followingId);
+
+    int countByFollowerId(Long followerId);
+
+
 }

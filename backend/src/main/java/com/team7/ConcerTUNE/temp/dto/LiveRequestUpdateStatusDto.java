@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class LiveRequestUpdateStatusDto {
     private RequestStatus status;
-    private String rejectionReason; // 거절 시 사유를 받기 위한 필드 (선택 사항)
+    private String rejectionReason;
 }

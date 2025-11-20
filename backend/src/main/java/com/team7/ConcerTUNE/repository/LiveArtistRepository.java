@@ -26,4 +26,8 @@ public interface LiveArtistRepository extends JpaRepository<LiveArtist, Long> {
             @Param("userId") Long userId,
             @Param("currentDate") LocalDate currentDate
     );
+
+    List<LiveArtist> findByArtist_ArtistId(Long artistId);
+
+    List<LiveArtist> findByArtist_ArtistIdIn(List<Long> artistIds);
 }

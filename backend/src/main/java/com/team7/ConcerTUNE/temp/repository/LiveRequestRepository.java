@@ -13,4 +13,5 @@ public interface LiveRequestRepository extends JpaRepository<LiveRequest, Long> 
 
     // 상태별 조회 (선택적)
     Page<LiveRequest> findAllByRequestStatus(RequestStatus status, Pageable pageable);
-}
+
+    Page<LiveRequest> findByRequesterId(Long requesterId, Pageable pageable);}

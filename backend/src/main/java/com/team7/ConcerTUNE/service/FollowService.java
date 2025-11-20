@@ -5,10 +5,12 @@ import com.team7.ConcerTUNE.entity.Follow;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.repository.FollowRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional
 public class FollowService {
-    private final FollowRepository followRepository;
+    private final FollowRepository  followRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public void toggleFollow(User follower, Long targetId) {
+    public boolean toggleFollow(Authentication authentication, Long targetId) {
+
+        User follower = authService.getUserFromAuth(authentication);
+
         User target = userRepository.findById(targetId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않은 사용자 입니다."));
 
@@ -39,10 +45,19 @@ public class FollowService {
                     .build();
             followRepository.save(follow);
         }
+        return !isFollowing;
+    }
+
+    public boolean isFollowing(Authentication authentication, Long targetUserId) {
+        User user = authService.getUserFromAuth(authentication);
+        return followRepository.existsByFollowerIdAndFollowingId(user.getId(), targetUserId);
     }
 
     @Transactional(readOnly = true)
-    public Page<UserFollowResponse> getFollowers(User user, Pageable pageable) {
+    public Page<UserFollowResponse> getFollowersByUserId(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
+
         Page<User> followers = followRepository.findFollowersByUser(user, pageable);
 
         return followers.map(follower -> UserFollowResponse.builder()
@@ -53,13 +68,16 @@ public class FollowService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserFollowResponse> getFollowings(User user, Pageable pageable) {
+    public Page<UserFollowResponse> getFollowingsByUserId(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 사용자입니다."));
+
         Page<User> followings = followRepository.findFollowingByUser(user, pageable);
 
-        return followings.map(follower -> UserFollowResponse.builder()
-                .id(follower.getId())
-                .username(follower.getUsername())
-                .profileImageUrl(follower.getProfileImageUrl())
+        return followings.map(following -> UserFollowResponse.builder()
+                .id(following.getId())
+                .username(following.getUsername())
+                .profileImageUrl(following.getProfileImageUrl())
                 .build());
     }
 
