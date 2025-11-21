@@ -1,6 +1,7 @@
 package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.UserResponse;
+import com.team7.ConcerTUNE.dto.UserUpdateRequest;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.repository.UserRepository;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -45,11 +47,34 @@ public class UserService {
     }
 
     //내 프로필 수정
-    public UserResponse updateMyProfile(User user) {
-        User updateUser = userRepository.save(user);
+    @Transactional
+    public UserResponse updateMyProfile(User user, UserUpdateRequest request) {
 
-        return UserResponse.from(updateUser);
+        // 닉네임 변경
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            user.setUsername(request.getUsername());
+        }
+
+        // 소개글 변경
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+
+        // 전화번호 변경
+        if (request.getPhoneNum() != null) {
+            user.setPhoneNum(request.getPhoneNum());
+        }
+
+        // 태그 변경 (문자열 형태로 저장)
+        if (request.getTags() != null) {
+            user.setTags(request.getTags());
+        }
+
+        userRepository.save(user);
+
+        return UserResponse.from(user);
     }
+
 
     //내 프로필 이미지 등록
     public UserResponse uploadProfileImage(User user, MultipartFile imageFile) throws IOException {
