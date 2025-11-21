@@ -37,20 +37,16 @@ const App = () => {
                     <Route path="" element={<Home />} />         {/* 검색 */}
                     <Route path="search" element={<SearchResultPage />} />
           {/* 공연/아티스트 */}
-                    <Route path="concerts" element={<ConcertListPage />} />
-                   {" "}
-          <Route path="concerts/:id" element={<ConcertDetailPage />} />
-                   {" "}
-          <Route path="concerts/request" element={<ConcertRequestPage />} />
+                    <Route path="concerts" element={<ConcertListPage />} />     
+              <Route path="concerts/:id" element={<ConcertDetailPage />} />     
+              <Route path="concerts/request" element={<ConcertRequestPage />} />
                    {" "}
           <Route path="artists/:artistId" element={<ArtistDetailPage />} />     
-             {/* 요청 관리 (통합) */}
-                   {" "}
-          <Route path="admin/requests" element={<AdminRequestListPage />} />
-                   {" "}
-          <Route path="concerts/request-list" element={<RequestListPage />} />
-                   {" "}
-          <Route path="artists/request" element={<LiveRequestPage />} />
+             {/* 요청 관리 (통합) */}         {" "}
+          <Route path="admin/requests" element={<AdminRequestListPage />} />   
+               {" "}
+          <Route path="concerts/request-list" element={<RequestListPage />} /> 
+                  <Route path="artists/request" element={<LiveRequestPage />} />
                    {" "}
           <Route
             path="artist-manager/requests"
@@ -69,8 +65,7 @@ const App = () => {
           </Route>
                     {/* 게시글 상세 */}
                     <Route path="post/:postId" element={<PostDetail />} />     
-              {/* 게시글 작성/수정 */}
-                   {" "}
+              {/* 게시글 작성/수정 */}         {" "}
           <Route path="community/write/:category" element={<PostWriteEdit />} />
                    {" "}
           <Route
