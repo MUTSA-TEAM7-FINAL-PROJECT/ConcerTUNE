@@ -16,21 +16,27 @@ import PostDetail from "./components/post/PostDetail";
 import PostWriteEdit from "./components/post/PostWriteEdit";
 import ConcertDetailPage from "./pages/ConcertDetailPage";
 import ConcertRequestPage from "./pages/ConcertRequestPage";
-import AdminRequestListPage from "./pages/AdminRequestListPage"; 
+import RequestListPage from "./pages/RequestListPage"; 
+import ArtistManagerRequestListPage from "./pages/ArtistManagerRequestListPage";
+import ArtistManagerRequestPage from "./pages/ArtistManagerRequestPage";
+import SearchResultPage from "./pages/SearchResultPage";
+import MyPage from "./pages/MyPage";
 
 const App = () => {
   return (
     <BrowserRouter>
     <Routes>
       <Route path="/*" element={<MainLayout />}> 
+          <Route path="search" element={<SearchResultPage />} />
+          <Route path="user/:userId" element={<MyPage />} />
           <Route path="" element={<Home />} />
           <Route path="concerts" element={<ConcertListPage />} />
           <Route path="concerts/:id" element={<ConcertDetailPage />} />
           <Route path="concerts/request" element={<ConcertRequestPage />} />
           <Route path="artists/:artistId" element={<ArtistDetailPage />} />
 
-          <Route path="admin/requests" element={<AdminRequestListPage />} /> 
-
+          <Route path="concerts/request-list" element={<RequestListPage />} /> 
+        <Route path="artist-manager/requests-list" element={<ArtistManagerRequestListPage />} />
 
           {/* 커뮤니티 목록 및 탭 레이아웃 */}
           <Route path="community" element={<CommunityPage />}>
@@ -46,6 +52,7 @@ const App = () => {
           <Route path="community/edit/:category/:postId" element={<PostWriteEdit />} />
           
           <Route path="artists/request" element={<LiveRequestPage />} />
+          <Route path="artist-manager/requests" element={<ArtistManagerRequestPage />} />
         </Route>
 
         {/* MainLayout을 사용하지 않는 페이지 */}
