@@ -16,8 +16,6 @@ import PostDetail from "./components/post/PostDetail";
 import PostWriteEdit from "./components/post/PostWriteEdit";
 import ConcertDetailPage from "./pages/ConcertDetailPage";
 import ConcertRequestPage from "./pages/ConcertRequestPage";
-// 👇 통합된 페이지 컴포넌트 Import
-import AdminRequestListPage from "./pages/AdminRequestListPage"; // 32-브랜치
 import ProfilePage from "./pages/ProfilePage"; // 32-브랜치 (내 프로필 상세)
 import ProfileUpdatePage from "./pages/ProfileUpdatePage"; // 32-브랜치
 import UserPage from "./pages/UserPage"; // 32-브랜치 (타인 프로필)
@@ -42,8 +40,7 @@ const App = () => {
               <Route path="concerts/request" element={<ConcertRequestPage />} />
                    {" "}
           <Route path="artists/:artistId" element={<ArtistDetailPage />} />     
-             {/* 요청 관리 (통합) */}         {" "}
-          <Route path="admin/requests" element={<AdminRequestListPage />} />   
+
                {" "}
           <Route path="concerts/request-list" element={<RequestListPage />} /> 
                   <Route path="artists/request" element={<LiveRequestPage />} />
