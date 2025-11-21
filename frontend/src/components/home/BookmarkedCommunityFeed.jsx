@@ -1,3 +1,5 @@
+// BookmarkedCommunityFeed.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import postService from '../../services/postService'; 
@@ -20,6 +22,7 @@ const BookmarkedCommunityFeed = () => {
         const fetchBookmarkedPosts = async () => {
             try {
                 setLoading(true);
+                // postService가 Live Title 정보를 포함한 데이터를 반환한다고 가정
                 const data = await postService.getBookmarkedConcertPosts();
                 setPosts(data);
                 setError(null);
@@ -33,6 +36,8 @@ const BookmarkedCommunityFeed = () => {
         fetchBookmarkedPosts();
     }, [user]);
 
+    // 로딩, 에러, 게시글 없음 상태 처리 (생략 없이 유지)
+    
     if (loading) {
         return (
             <div className="lg:col-span-2">
@@ -51,7 +56,7 @@ const BookmarkedCommunityFeed = () => {
     if (error && (user && user.id)) {
         return (
             <div className="lg:col-span-2">
-                <h3 className="text-2xl font-bold mb-4">💬 북마크 커뮤니티 피드</h3>
+                <h3 className="text-2xl font-bold mb-4">나의 커뮤니티 피드</h3>
                 <div className="bg-red-50 p-6 rounded-lg h-96 overflow-y-auto border border-red-200 flex items-center justify-center">
                     <p className="text-red-500 font-semibold text-center">{error}</p>
                 </div>
@@ -66,7 +71,7 @@ const BookmarkedCommunityFeed = () => {
 
         return (
             <div className="lg:col-span-2">
-                <h3 className="text-2xl font-bold mb-4">💬 북마크 커뮤니티 피드</h3>
+                <h3 className="text-2xl font-bold mb-4">나의 커뮤니티 피드</h3>
                 <div className="bg-gray-100 p-6 rounded-lg h-96 overflow-y-auto border flex items-center justify-center">
                     <p className="text-gray-500 font-medium text-center">{message}</p>
                 </div>
@@ -74,23 +79,32 @@ const BookmarkedCommunityFeed = () => {
         );
     }
     
+    // 정상 렌더링 부분
     return (
         <div className="lg:col-span-2">
-            <h3 className="text-2xl font-bold mb-4">💬 북마크 커뮤니티 피드</h3>
+            <h3 className="text-2xl font-bold mb-4">나의 커뮤니티 피드</h3>
             <div className="bg-gray-50 p-6 rounded-lg h-96 overflow-y-auto border">
                 <div className="space-y-3">
                     {posts.map(post => (
                         <Link 
                             to={`/post/${post.postId}`} 
                             key={post.postId} 
-                            className="block p-3 bg-white hover:bg-gray-100 rounded-md transition duration-150 flex justify-between items-center"
+                            className="block p-3 bg-white hover:bg-gray-100 rounded-md transition duration-150"
                         >
-                            <span className="font-semibold truncate">
+                            {/* 게시글 제목 */}
+                            <p className="font-semibold text-gray-800 truncate mb-1">
                                 {post.title}
-                            </span>
-                            <span className="text-sm text-gray-500 flex-shrink-0 ml-4">
-                                by {post.writer} ({post.likeCount}👍)
-                            </span>
+                            </p>
+                            
+                            {/* 💡 공연 제목 및 작성자 정보 추가 */}
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-indigo-600 font-medium truncate max-w-[60%]">
+                                    {post.concertTitle || post.liveTitle || "공연 정보 없음"}
+                                </span>
+                                <span className="text-gray-500 flex-shrink-0 ml-4">
+                                    by {post.writer} ({post.likeCount}👍)
+                                </span>
+                            </div>
                         </Link>
                     ))}
                 </div>

@@ -54,6 +54,29 @@ const concertService = {
             throw new Error(err.response?.data?.message || "맞춤 추천 공연 목록을 불러오는 데 실패했습니다.");
         }
     },
+
+    checkIsHearted: async (concertId) => {
+        try {
+            const response = await api.get(`/api/lives/${concertId}/bookmarks/status`); 
+            return response.data;
+        } catch (err) {
+            console.error("북마크 상태 확인 실패:", err);
+            if (err.response && err.response.status === 404) {
+                 return false;
+            }
+            throw new Error(err.response?.data?.message || "북마크 상태를 불러오는 데 실패했습니다.");
+        }
+    },
+
+    toggleBookmark: async (concertId) => {
+        try {
+            const response = await api.post(`/api/lives/${concertId}/bookmarks`);
+            return response.data; 
+        } catch (err) {
+            console.error("북마크 토글 실패:", err);
+            throw new Error(err.response?.data?.message || "북마크 상태를 변경하는 데 실패했습니다.");
+        }
+    }
 };
 
 export default concertService;

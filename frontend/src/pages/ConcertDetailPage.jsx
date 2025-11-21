@@ -1,24 +1,59 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import InfiniteScrollPostList from './InfiniteScrollPostList'; 
 import concertService from "../services/concertService";
 import ChatWidget from "../components/modal/ChatWidget";
+import { useAuth } from "../context/AuthContext";
 
 const ConcertDetailPage = () => {
     const { id: concertId } = useParams(); 
-    
+    const { isLoggedIn } = useAuth();
     const TABS = ["아티스트", "일정/가격", "자유게시판", "동행 게시판", "후기"];
-    // 💡 탭에 일정/가격을 추가하여 통합 정보를 보여줍니다.
     const [activeTab, setActiveTab] = useState(TABS[0]); 
 
     const [concert, setConcert] = useState(null); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // DTO를 불러오는 로직 (유지)
+    const [isHearted, setIsHearted] = useState(false);
+    const [isHeartLoading, setIsHeartLoading] = useState(false); 
+
+    const checkBookmarkStatus = async () => {
+        if (!concertId || !isLoggedIn) {
+            setIsHearted(false); 
+            return;
+        }
+
+        try {
+            const hearted = await concertService.checkIsHearted(concertId);
+            setIsHearted(hearted);
+        } catch (err) {
+            console.warn("북마크 상태 확인 중 오류 발생:", err);
+            setIsHearted(false);
+        }
+    };
+    
+    const handleToggleBookmark = async () => {
+        if (!isLoggedIn) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        
+        setIsHeartLoading(true);
+        try {
+            const newStatus = await concertService.toggleBookmark(concertId);
+            setIsHearted(newStatus);
+        } catch (err) {
+            console.error("북마크 토글 실패:", err);
+            alert("북마크 상태 변경에 실패했습니다.");
+        } finally {
+            setIsHeartLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchConcertDetail = async () => {
-            if (!concertId || isNaN(concertId)) { // ID가 유효한지 다시 확인하는 것이 좋습니다.
+            if (!concertId || isNaN(concertId)) { 
                 setLoading(false);
                 setError("잘못된 공연 ID입니다.");
                 return;
@@ -28,11 +63,12 @@ const ConcertDetailPage = () => {
                 setLoading(true);
                 setError(null);
                 
-                // Live ID (concertId)가 숫자/문자열 형태로 전달된다고 가정
                 const liveData = await concertService.getConcert(concertId); 
                 
                 setConcert(liveData); 
-
+                if (isLoggedIn) {
+                    await checkBookmarkStatus();
+                }
             } catch (err) {
                 console.error("API Call Error:", err);
                 setError(err.message || "공연 정보를 불러오는 데 실패했습니다.");
@@ -43,9 +79,8 @@ const ConcertDetailPage = () => {
         };
 
         fetchConcertDetail();
-    }, [concertId]); 
+    }, [concertId, isLoggedIn]); 
 
-    // 💡 아티스트 정보 렌더링 함수 (사진, 이름 표시)
     const renderArtistContent = () => {
         if (!concert.artists || concert.artists.length === 0) {
             return <div className="p-6 text-gray-500">등록된 아티스트 정보가 없습니다.</div>;
@@ -56,16 +91,21 @@ const ConcertDetailPage = () => {
                 <h3 className="text-2xl font-bold mb-6 text-gray-800">참여 아티스트</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                     {concert.artists.map((artist) => (
-                        <div key={artist.artistId} className="flex flex-col items-center text-center">
-                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-300 shadow-md mb-2">
+                         <Link 
+                            key={artist.artistId} 
+                            to={`/artists/${artist.artistId}`} 
+                            className="flex flex-col items-center text-center group transition-transform duration-200 hover:scale-105 hover:shadow-lg rounded-xl p-2"
+                        >
+                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-300 group-hover:border-indigo-500 shadow-md mb-2">
                                 <img
-                                    src={artist.artistImageUrl || "https://placehold.co/80x80?text=NO+IMG"}
+                                    src={artist.artistImageUrl || "https://placehold.co/80x80/eeeeee/cccccc?text=NO+IMG"}
                                     alt={artist.name}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/80x80/eeeeee/cccccc?text=NO+IMG" }}
                                 />
                             </div>
-                            <span className="font-semibold text-gray-800 text-base">{artist.name}</span>
-                        </div>
+                            <span className="font-semibold text-gray-800 text-base group-hover:text-indigo-600">{artist.name}</span>
+                        </Link>
                     ))}
                 </div>
             </div>
@@ -90,10 +130,10 @@ const ConcertDetailPage = () => {
                                 <li key={index} className="flex items-center gap-2">
                                     <span className="font-bold text-gray-600">날짜:</span> 
                                     {schedule.liveDate ? 
-                                        new Date(schedule.liveDate).toLocaleDateString('ko-KR') : '날짜 미정'}
+                                        schedule.liveDate : '날짜 미정'}
                                     <span className="font-bold text-gray-600">/ 시간:</span> 
                                     {schedule.liveTime ? 
-                                        new Date(schedule.liveTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '시간 미정'}
+                                        schedule.liveTime : '시간 미정'}
                                 </li>
                             ))}
                         </ul>
@@ -179,21 +219,36 @@ const ConcertDetailPage = () => {
             </h1>
             
             <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 flex flex-col md:flex-row gap-8">
-                {/* 1. 포스터 영역 */}
+             {/* 1. 포스터 영역 */}
                 <div className="w-full md:w-1/3 flex-shrink-0">
                     <div className="relative overflow-hidden rounded-lg shadow-xl aspect-[3/4]">
-                         <img
-                            src={concert.posterUrl}
-                            alt={`${concert.title} 포스터`}
-                            className="absolute top-0 left-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4">
-                            <button className="bg-white p-3 rounded-full shadow-md hover:bg-gray-100 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                                </svg>
-                            </button>
-                        </div>
+                           <img
+                                src={concert.posterUrl}
+                                alt={`${concert.title} 포스터`}
+                                className="absolute top-0 left-0 w-full h-full object-cover"
+                            />
+                            <div className="absolute top-4 left-4">
+                                {/* 💡 하트 버튼 수정 및 로직 연결 */}
+                                <button 
+                                    onClick={handleToggleBookmark}
+                                    disabled={isHeartLoading}
+                                    className={`p-3 rounded-full shadow-md transition ${
+                                        isHearted 
+                                            ? "bg-red-500 text-white hover:bg-red-600" 
+                                            : "bg-white text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" 
+                                         fill={isHearted ? "currentColor" : "none"} 
+                                         viewBox="0 0 24 24" 
+                                         strokeWidth={1.5} 
+                                         stroke="currentColor" 
+                                         className={`w-6 h-6 ${isHeartLoading ? 'animate-pulse' : ''}`}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                    </svg>
+                                </button>
+                            </div>
                     </div>
                 </div>
 
