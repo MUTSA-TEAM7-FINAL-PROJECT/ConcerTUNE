@@ -1,6 +1,9 @@
 package com.team7.ConcerTUNE.dto;
 
 import com.team7.ConcerTUNE.entity.Live;
+import com.team7.ConcerTUNE.entity.LiveArtist;
+import com.team7.ConcerTUNE.entity.LiveSchedule;
+import com.team7.ConcerTUNE.entity.Schedule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,29 +30,36 @@ public class LiveSummaryResponse {
     private int countBookmark;
     private Boolean isBookmarked;
 
-    // 비로그인
-    public static LiveSummaryResponse fromEntity(Live entity) {
+    // 로그인
+    public static LiveSummaryResponse fromEntity(Live live, boolean isBookmarked) {
         return LiveSummaryResponse.builder()
-                .id(entity.getId())
-                .title(entity.getTitle())
-                .posterUrl(entity.getPosterUrl())
-                .ticketUrl(entity.getTicketUrl())
-                .ticketDateTime(entity.getTicketDateTime())
+                .id(live.getId())
+                .title(live.getTitle())
+                .posterUrl(live.getPosterUrl())
+                .ticketUrl(live.getTicketUrl())
+                .ticketDateTime(live.getTicketDateTime())
                 .artists(
-                        entity.getLiveArtists().stream()
-                                .map(liveArtist ->
-                                        ArtistSummaryDto.fromEntity(liveArtist.getArtist()))
+                        live.getLiveArtists() == null ? List.of()
+                                : live.getLiveArtists().stream()
+                                .map(link -> ArtistSummaryDto.fromEntity(link.getArtist()))
                                 .toList()
                 )
                 .schedules(
-                        entity.getLiveSchedules().stream()
-                                .map(liveSchedule ->
-                                        LiveScheduleDto.fromEntity(liveSchedule.getSchedule())
-                                )
+                        live.getLiveSchedules() == null ? List.of()
+                                : live.getLiveSchedules().stream()
+                                .map(ls -> LiveScheduleDto.fromEntity(ls.getSchedule()))
                                 .toList()
                 )
-                .countBookmark(entity.getBookmarks().size())
+                .countBookmark(
+                        live.getBookmarks() == null ? 0 : live.getBookmarks().size()
+                )
+                .isBookmarked(isBookmarked)
                 .build();
+    }
+
+    // 비로그인
+    public static LiveSummaryResponse fromEntity(Live live) {
+        return fromEntity(live, false);
     }
 
 //    // 로그인

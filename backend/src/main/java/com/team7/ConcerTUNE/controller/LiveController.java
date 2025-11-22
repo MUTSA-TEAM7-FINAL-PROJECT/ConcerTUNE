@@ -59,4 +59,6 @@ public class LiveController {
         List<ArtistSummaryDto> artists = liveService.getArtists(liveId);;
         return ResponseEntity.ok(artists);
     }
+
+
 }

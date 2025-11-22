@@ -23,7 +23,7 @@ public class BookmarkService {
 
     public boolean toggleBookmark(Long liveId, User user) {
         Live live = liveRepository.findById(liveId)
-                .orElseThrow(() -> new ResourceNotFoundException("Live not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("공연을 찾을 수 없습니다. ID: " + liveId));
 
         boolean alreadyBookmarked = bookmarkRepository.existsByUserAndLive(user, live);
 
@@ -43,7 +43,7 @@ public class BookmarkService {
     @Transactional(readOnly = true)
     public boolean isBookmarked(Long liveId, User user) {
         Live live = liveRepository.findById(liveId)
-                .orElseThrow(() -> new ResourceNotFoundException("Live not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("공연을 찾을 수 없습니다. ID: " + liveId));
 
         return bookmarkRepository.existsByUserAndLive(user, live);
     }
