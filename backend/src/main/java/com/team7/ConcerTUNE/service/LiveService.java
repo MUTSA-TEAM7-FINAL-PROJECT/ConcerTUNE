@@ -1,8 +1,6 @@
 package com.team7.ConcerTUNE.service;
 
-import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
-import com.team7.ConcerTUNE.dto.LiveResponse;
-import com.team7.ConcerTUNE.dto.LiveSummaryResponse;
+import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
 import com.team7.ConcerTUNE.repository.*;
@@ -14,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +28,9 @@ public class LiveService {
     private final LiveArtistRepository liveArtistRepository;
     private final LiveScheduleRepository liveScheduleRepository;
     private final BookmarkService bookmarkService;
+    private final UserRepository userRepository;
+    private final UserArtistRepository userArtistRepository;
+    private final PostRepository postRepository;
 
     // 공연 전체 조회
     public Page<LiveSummaryResponse> getAllLives(Pageable pageable, User user) {
@@ -66,11 +69,6 @@ public class LiveService {
                 .toList();
     }
 
-//    // 어제 공연 1개와 오늘 이후 공연 조회
-//    public Page<LiveSummaryResponse> getUpcoming(Pageable pageable) {
-//
-//    }
-
     // 가장 가까운 시일 내에 예정된 공연 n개 조회
     public List<LiveSummaryResponse> getUpcomingLives(User user, int n) {
         LocalDate today = LocalDate.now();
@@ -104,6 +102,195 @@ public class LiveService {
         }
 
         return new ArrayList<>(map.values());
+    }
+
+    public List<LiveSummaryResponse> getLivesByYearAndMonth(int year, int month, Long currentUserId) {
+
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        final User currentUser;
+        if (currentUserId != null) {
+            currentUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + currentUserId));
+        } else {
+            currentUser = null;
+        }
+
+        List<LiveSchedule> schedules =
+                liveScheduleRepository
+                        .findByLive_RequestStatusAndSchedule_LiveDateBetweenOrderBySchedule_LiveDateAscSchedule_LiveTimeAsc(
+                                RequestStatus.APPROVED,
+                                startDate,
+                                endDate
+                        );
+
+        return schedules.stream()
+                .map(ls -> {
+                    Live live = ls.getLive();
+                    Schedule schedule = ls.getSchedule();
+
+                    boolean isBookmarked = currentUser != null &&
+                            bookmarkRepository.existsByUserAndLive(currentUser, live);
+
+                    return LiveSummaryResponse.builder()
+                            .id(live.getId())
+                            .title(live.getTitle())
+                            .posterUrl(live.getPosterUrl())
+                            .ticketUrl(live.getTicketUrl())
+                            .ticketDateTime(live.getTicketDateTime())
+                            .artists(
+                                    live.getLiveArtists() == null ? List.of()
+                                            : live.getLiveArtists().stream()
+                                            .map(link -> ArtistSummaryDto.fromEntity(link.getArtist()))
+                                            .toList()
+                            )
+                            .schedules(
+                                    List.of(LiveScheduleDto.fromEntity(schedule))
+                            )
+                            .countBookmark(
+                                    live.getBookmarks() == null ? 0 : live.getBookmarks().size()
+                            )
+                            .isBookmarked(isBookmarked)
+                            .build();
+                })
+                .toList();
+    }
+
+    public LiveSummaryResponse getNearestBookmarkedLive(Long userId) {
+
+        final User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + userId));
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        Pageable pageable = PageRequest.of(0, 1); // 딱 1개만
+
+        List<LiveSchedule> schedules =
+                bookmarkRepository.findNearestFutureBookmarkedSchedule(
+                        currentUser,
+                        RequestStatus.APPROVED,
+                        today,
+                        now,
+                        pageable
+                );
+
+        if (schedules.isEmpty()) {
+            throw new ResourceNotFoundException("다가오는 즐겨찾기 공연이 없습니다.");
+        }
+
+        LiveSchedule nearest = schedules.get(0);
+        Live live = nearest.getLive();
+        Schedule schedule = nearest.getSchedule();
+
+        return LiveSummaryResponse.builder()
+                .id(live.getId())
+                .title(live.getTitle())
+                .posterUrl(live.getPosterUrl())
+                .ticketUrl(live.getTicketUrl())
+                .ticketDateTime(live.getTicketDateTime())
+                .artists(
+                        live.getLiveArtists() == null ? List.of()
+                                : live.getLiveArtists().stream()
+                                .map(link -> ArtistSummaryDto.fromEntity(link.getArtist()))
+                                .toList()
+                )
+                .schedules(List.of(LiveScheduleDto.fromEntity(schedule)))
+                .countBookmark(
+                        live.getBookmarks() == null ? 0 : live.getBookmarks().size()
+                )
+                .isBookmarked(true)
+                .build();
+    }
+
+    public List<LiveSummaryResponse> getUpcomingLivesOfFollowedArtists(Long userId) {
+
+        final User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + userId));
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        List<LiveSchedule> schedules =
+                userArtistRepository.findFutureSchedulesOfFollowedArtists(
+                        currentUser,
+                        RequestStatus.APPROVED,
+                        today,
+                        now
+                );
+
+        Map<Long, LiveWithSchedules> grouped = new LinkedHashMap<>();
+
+        for (LiveSchedule ls : schedules) {
+            Live live = ls.getLive();
+            Schedule schedule = ls.getSchedule();
+            Long liveId = live.getId();
+
+            LiveWithSchedules group = grouped.get(liveId);
+            if (group == null) {
+                group = new LiveWithSchedules(live, new ArrayList<>());
+                grouped.put(liveId, group);
+            }
+            group.schedules().add(schedule);
+        }
+
+        List<LiveSummaryResponse> result = new ArrayList<>();
+
+        for (LiveWithSchedules group : grouped.values()) {
+            Live live = group.live();
+            List<Schedule> futureSchedules = group.schedules();
+
+            boolean isBookmarked = bookmarkRepository.existsByUserAndLive(currentUser, live);
+
+            LiveSummaryResponse dto = LiveSummaryResponse.builder()
+                    .id(live.getId())
+                    .title(live.getTitle())
+                    .posterUrl(live.getPosterUrl())
+                    .ticketUrl(live.getTicketUrl())
+                    .ticketDateTime(live.getTicketDateTime())
+                    .artists(
+                            live.getLiveArtists() == null ? List.of()
+                                    : live.getLiveArtists().stream()
+                                    .map(link -> ArtistSummaryDto.fromEntity(link.getArtist()))
+                                    .toList()
+                    )
+                    .schedules(
+                            futureSchedules.stream()
+                                    .map(LiveScheduleDto::fromEntity)
+                                    .toList()
+                    )
+                    .countBookmark(
+                            live.getBookmarks() == null ? 0 : live.getBookmarks().size()
+                    )
+                    .isBookmarked(isBookmarked)
+                    .build();
+
+            result.add(dto);
+        }
+
+        return result;
+    }
+    private record LiveWithSchedules(
+            Live live,
+            List<Schedule> schedules
+    ) {
+    }
+
+    public List<BookmarkReviewResponse> getBookmarkedLiveReviews(Long userId) {
+
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + userId));
+
+        List<Post> posts = postRepository.findReviewPostsForBookmarkedLives(
+                currentUser,
+                RequestStatus.APPROVED,
+                CommunityCategoryType.REVIEW
+        );
+
+        return posts.stream()
+                .map(BookmarkReviewResponse::fromEntity)
+                .toList();
     }
 }
 

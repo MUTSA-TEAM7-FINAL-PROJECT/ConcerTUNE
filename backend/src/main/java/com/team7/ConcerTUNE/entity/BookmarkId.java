@@ -18,6 +18,6 @@ public class BookmarkId implements Serializable {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "live_id", length = 255)
+    @Column(name = "live_id")
     private Long liveId;
 }

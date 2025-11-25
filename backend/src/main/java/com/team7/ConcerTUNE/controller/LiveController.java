@@ -1,6 +1,7 @@
 package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.dto.BookmarkReviewResponse;
 import com.team7.ConcerTUNE.dto.LiveResponse;
 import com.team7.ConcerTUNE.dto.LiveSummaryResponse;
 import com.team7.ConcerTUNE.entity.User;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,9 +58,35 @@ public class LiveController {
 
     @GetMapping("/{liveId}/artists")
     public ResponseEntity<List<ArtistSummaryDto>> getArtists(@PathVariable Long liveId) {
-        List<ArtistSummaryDto> artists = liveService.getArtists(liveId);;
+        List<ArtistSummaryDto> artists = liveService.getArtists(liveId);
+        ;
         return ResponseEntity.ok(artists);
     }
 
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<LiveSummaryResponse>> getUpcomingLives(
+            @AuthenticationPrincipal SimpleUserDetails principal
+    ) {
+        User user = null;
+        if (principal != null) {
+            user = userService.findEntityById(principal.getUserId());
+        }
+        List<LiveSummaryResponse> lives = liveService.getUpcomingLives(user, 5); // 5개 조회
 
+        return ResponseEntity.ok(lives);
+    }
+
+    @GetMapping("/schedules")
+    public ResponseEntity<List<LiveSummaryResponse>> getLivesByYearAndMonth(
+            @RequestParam int year,
+            @RequestParam int month,
+            @AuthenticationPrincipal SimpleUserDetails userDetails
+    ) {
+        Long currentUserId = (userDetails != null) ? userDetails.getUserId() : null;
+
+        List<LiveSummaryResponse> responses =
+                liveService.getLivesByYearAndMonth(year, month, currentUserId);
+
+        return ResponseEntity.ok(responses);
+    }
 }

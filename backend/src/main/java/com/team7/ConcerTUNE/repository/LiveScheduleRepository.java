@@ -20,4 +20,11 @@ public interface LiveScheduleRepository extends JpaRepository<LiveSchedule, Long
             LocalDate from,
             PageRequest pageRequest
     );
+
+    // 기간 내 스케줄들
+    List<LiveSchedule> findByLive_RequestStatusAndSchedule_LiveDateBetweenOrderBySchedule_LiveDateAscSchedule_LiveTimeAsc(
+            RequestStatus status,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }

@@ -13,7 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,41 @@ public class LiveRequestService {
                 .ticketDateTime(request.getTicketDateTime())
                 .writer(user)
                 .build();
+
+        // 스케줄 생성
+        List<LiveSchedule> liveSchedules = Optional.ofNullable(request.getSchedules())
+                .orElseGet(List::of)
+                .stream()
+                .map(dto -> {
+                    Schedule schedule = dto.toNewScheduleEntity();
+                    schedule = scheduleRepository.save(schedule);
+
+                    return LiveSchedule.builder()
+                            .live(live)
+                            .schedule(schedule)
+                            .build();
+                })
+                .toList();
+
+        // 아티스트 링크
+        List<LiveArtist> liveArtists = new ArrayList<>();
+        if (request.getArtistIds() != null) {
+            for (Long artistId : request.getArtistIds()) {
+                Artist artist = artistRepository.findById(artistId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException("존재하지 않는 아티스트 ID: " + artistId));
+
+                liveArtists.add(
+                        LiveArtist.builder()
+                                .live(live)
+                                .artist(artist)
+                                .build()
+                );
+            }
+        }
+
+        live.setLiveSchedules(liveSchedules);
+        live.setLiveArtists(liveArtists);
 
         Live saved = liveRepository.save(live);
         return LiveResponse.fromEntity(saved);
@@ -98,22 +135,27 @@ public class LiveRequestService {
             targetLive.getLiveArtists().addAll(links);
         }
 
-        if (liveRequest.getScheduleIds() != null) {
+        if (liveRequest.getSchedules() != null) {
+
             liveScheduleRepository.deleteByLive(targetLive);
 
-            List<Schedule> schedules = scheduleRepository.findAllById(liveRequest.getScheduleIds());
+            List<LiveSchedule> liveSchedules = liveRequest.getSchedules().stream()
+                    .map(dto -> {
+                        Schedule schedule = dto.toNewScheduleEntity();
+                        schedule = scheduleRepository.save(schedule);
 
-            List<LiveSchedule> liveSchedules = schedules.stream()
-                    .map(schedule -> LiveSchedule.builder()
-                            .live(targetLive)
-                            .schedule(schedule)
-                            .build())
+                        return LiveSchedule.builder()
+                                .live(targetLive)
+                                .schedule(schedule)
+                                .build();
+                    })
                     .toList();
 
             liveScheduleRepository.saveAll(liveSchedules);
             targetLive.getLiveSchedules().clear();
             targetLive.getLiveSchedules().addAll(liveSchedules);
         }
+
         return LiveResponse.fromEntity(targetLive);
     }
 
