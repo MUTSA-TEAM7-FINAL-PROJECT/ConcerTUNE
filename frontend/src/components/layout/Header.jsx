@@ -1,10 +1,7 @@
-// src/components/layout/Header.jsx
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import NotificationDropdown from "./NotificatonDropdown";
 import { useAuth } from "../../context/AuthContext";
-// 💡 아이콘 추가
 import { FaUserCircle } from "react-icons/fa";
 
 const Header = () => {

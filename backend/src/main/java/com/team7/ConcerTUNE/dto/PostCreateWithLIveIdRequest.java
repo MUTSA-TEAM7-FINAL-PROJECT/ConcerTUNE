@@ -1,6 +1,5 @@
 package com.team7.ConcerTUNE.dto;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostCreateRequest {
+public class PostCreateWithLIveIdRequest {
 
 	@NotBlank(message = "제목은 필수입니다")
 	private String title;
@@ -20,10 +19,8 @@ public class PostCreateRequest {
 	@NotBlank(message = "내용은 필수입니다")
 	private String content;
 
-	@Nullable
-	private String liveId;
-
 	private List<String> imageUrls;
 	private List<String> fileUrls;
+	private Long liveId;
 }
 

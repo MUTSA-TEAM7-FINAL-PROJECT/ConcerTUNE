@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.dto.FollowStatusResponse;
 import com.team7.ConcerTUNE.dto.LiveSummaryResponse;
 import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.service.ArtistService;
@@ -64,6 +65,12 @@ public class ArtistController {
     ) {
         artistService.unfollowArtist(artistId, authentication);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{artistId}/follow/status")
+    public ResponseEntity<FollowStatusResponse> getFollowStatus(@PathVariable Long artistId, Authentication authentication) {
+        FollowStatusResponse response = artistService.getFollowStatus(artistId, authentication);
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")

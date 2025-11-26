@@ -7,9 +7,9 @@ import { useAuth } from '../context/AuthContext';
 // 게시판 카테고리 이름 매핑 (공연 상세 페이지용)
 const getCategoryName = (param) => {
     switch (param) {
-        case 'free': return '자유 게시판'; 
-        case 'review': return '공연 후기';
-        case 'accompany': return '동행 구하기';
+        case 'FREE': return '자유 게시판'; 
+        case 'REVIEW': return '공연 후기';
+        case 'ACCOMPANY': return '동행 구하기';
         default: return '게시판';
     }
 };

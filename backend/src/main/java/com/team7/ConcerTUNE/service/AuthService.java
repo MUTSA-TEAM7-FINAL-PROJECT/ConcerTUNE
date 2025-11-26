@@ -10,6 +10,7 @@ import com.team7.ConcerTUNE.exception.TokenRefreshException;
 import com.team7.ConcerTUNE.exception.UserAlreadyExistsException;
 import com.team7.ConcerTUNE.repository.UserRepository;
 import com.team7.ConcerTUNE.security.JwtService;
+import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.util.RandomCodeGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -263,5 +265,14 @@ public class AuthService {
         userRepository.save(user);
 
         stringStringRedisTemplate.delete(redisKey);
+    }
+
+    public User getUserFromAuth(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof SimpleUserDetails)) {
+            throw new BadRequestException("유효한 로그인 정보가 없습니다");
+        }
+        SimpleUserDetails userDetails = (SimpleUserDetails) authentication.getPrincipal();
+        return userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("유저를 찾을 수 없습니다. ID: " + userDetails.getUserId()));
     }
 }

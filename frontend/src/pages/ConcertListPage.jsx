@@ -95,7 +95,7 @@ const ConcertListPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
             {concerts.map((concert) => (
               <Link
-                to={`/concerts/${concert.liveId}`}
+                to={`/concerts/${concert.id}`}
                 key={concert.id}
                 className="group border rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden bg-white transform hover:-translate-y-1"
               >

@@ -142,4 +142,15 @@ public class CommentService {
 		log.info("댓글 좋아요 취소 완료: commentId={}, userId={}", commentId, userId);
 		return CommentResponse.from(comment);
 	}
+
+	@Transactional(readOnly = true)
+	public boolean isCommentLiked(Long commentId, Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+		Comment comment = commentRepository.findById(commentId)
+				.orElseThrow(() -> new IllegalArgumentException("Comment not found with id: " + commentId));
+
+		return commentLikeRepository.existsByUserAndComment(user, comment);
+	}
 }

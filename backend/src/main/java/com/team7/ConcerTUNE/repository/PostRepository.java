@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 // 게시글 Repository
@@ -27,6 +28,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@EntityGraph(attributePaths = {"writer"})
 	@Query("SELECT p FROM Post p WHERE p.id = :postId")
 	Optional<Post> findByIdWithWriter(@Param("postId") Long postId);
+
+	Page<Post> findByLiveIdAndCategory(Long liveId, CommunityCategoryType category, Pageable pageable);
+
 
 	@EntityGraph(attributePaths = {"writer"})
 	@Query("SELECT p FROM Post p WHERE p.category = :category AND p.title LIKE %:keyword% ORDER BY p.createdAt DESC")
@@ -71,5 +75,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("status") RequestStatus status,
             @Param("category") CommunityCategoryType category
     );
+
+	@Query("SELECT p FROM Post p " +
+			"WHERE p.createdAt >= :oneWeekAgo " +
+			"ORDER BY p.likeCount DESC, p.createdAt DESC")
+	List<Post> findTop3WeeklyPosts(LocalDateTime oneWeekAgo, Pageable pageable);
 }
 

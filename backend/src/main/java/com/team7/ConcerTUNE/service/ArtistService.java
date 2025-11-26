@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.dto.FollowStatusResponse;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
@@ -26,7 +27,7 @@ public class ArtistService {
     private final UserRepository userRepository;
     private final UserArtistRepository userArtistRepository;
     private final NotificationService notificationService;
-
+    private final AuthService authService;
     // 아티스트 목록 조회
     @Transactional(readOnly = true)
     public Page<ArtistSummaryDto> getArtistList(String name, Pageable pageable) {
@@ -77,6 +78,12 @@ public class ArtistService {
         UserArtist follow = userArtistRepository.findByUserAndArtist(user, artist)
                 .orElseThrow(() -> new ResourceNotFoundException("팔로우 관계를 찾을 수 없습니다"));
         userArtistRepository.delete(follow);
+    }
+
+    public FollowStatusResponse getFollowStatus(Long artistId, Authentication authentication) {
+        User user = getUserFromAuth(authentication);
+        boolean isFollowing = userArtistRepository.findByUserIdAndArtistId(user.getId(), artistId).isPresent();
+        return new FollowStatusResponse(artistId, isFollowing);
     }
 
     /* 아티스트 권한 유저의 공연 등록 요청

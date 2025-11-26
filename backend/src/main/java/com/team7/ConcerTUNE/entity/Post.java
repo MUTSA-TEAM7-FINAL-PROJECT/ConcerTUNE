@@ -85,7 +85,6 @@ public class Post extends BaseEntity {
     public void increaseLikeCount() {
         likeCount = likeCount + 1;
     }
-
     public void decreaseLikeCount() {
         likeCount = Math.max(0, likeCount - 1);
     }

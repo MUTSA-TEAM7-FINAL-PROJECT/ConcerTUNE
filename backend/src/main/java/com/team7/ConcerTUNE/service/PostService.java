@@ -1,24 +1,25 @@
 package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.PostCreateRequest;
+import com.team7.ConcerTUNE.dto.PostCreateWithLIveIdRequest;
 import com.team7.ConcerTUNE.dto.PostUpdateRequest;
 import com.team7.ConcerTUNE.dto.PostResponse;
-import com.team7.ConcerTUNE.entity.CommunityCategoryType;
-import com.team7.ConcerTUNE.entity.Post;
-import com.team7.ConcerTUNE.entity.PostLike;
-import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.PostNotFoundException;
 import com.team7.ConcerTUNE.exception.UnauthorizedException;
+import com.team7.ConcerTUNE.repository.LiveRepository;
 import com.team7.ConcerTUNE.repository.PostLikeRepository;
 import com.team7.ConcerTUNE.repository.PostRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,15 +28,24 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class PostService {
+public class 	PostService {
 
 	private final PostRepository postRepository;
 	private final PostLikeRepository postLikeRepository;
 	private final UserRepository userRepository;
+	private final LiveRepository liveRepository;
 
 	// 게시글 작성
 	public PostResponse createPost(PostCreateRequest request, CommunityCategoryType category, Long userId) {
 		log.info("게시글 작성 시작: userId={}, category={}, title={}", userId, category, request.getTitle());
+
+		Live live = null;
+		if (request.getLiveId() != null) {
+			live = liveRepository.findById(Long.valueOf(request.getLiveId()))
+					.orElseThrow(() -> new IllegalArgumentException("Live not found with id: " + request.getLiveId()));
+		}
+
+
 		User writer = userRepository.findById(userId)
 				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
 		Post post = Post.builder()
@@ -45,7 +55,9 @@ public class PostService {
 				.category(category)
 				.imageUrls(request.getImageUrls() != null ? request.getImageUrls() : List.of())
 				.fileUrls(request.getFileUrls() != null ? request.getFileUrls() : List.of())
+				.live(live)
 				.build();
+
 		Post savedPost = postRepository.save(post);
 		log.info("게시글 작성 완료: postId={}", savedPost.getId());
 		return PostResponse.from(savedPost);
@@ -96,15 +108,19 @@ public class PostService {
 		return posts.map(PostResponse::from);
 	}
 
+	public Page<PostResponse> getPostsByLiveAndCategory(Long liveId, CommunityCategoryType category, Pageable pageable
+	) {
+		Page<Post> posts = postRepository.findByLiveIdAndCategory(liveId, category, pageable);
+		return posts.map(PostResponse::from);
+	}
+
 	// 특정 게시글 조회
 	@Transactional
-	public PostResponse getPost(Long postId, CommunityCategoryType category) {
-		log.info("게시글 조회: postId={}, category={}", postId, category);
+	public PostResponse getPost(Long postId) {
+		log.info("게시글 조회: postId={}", postId);
 		Post post = postRepository.findByIdWithWriter(postId)
 				.orElseThrow(() -> new PostNotFoundException(postId));
-		if (post.getCategory() != category) {
-			throw new IllegalArgumentException("카테고리가 일치하지 않습니다.");
-		}
+
 		post.increaseViewCount();
 		postRepository.save(post);
 		return PostResponse.from(post);
@@ -170,4 +186,52 @@ public class PostService {
 		log.info("게시글 좋아요 취소 완료: postId={}, userId={}", postId, userId);
 		return PostResponse.from(post);
 	}
+
+	public List<PostResponse> getTop3WeeklyPosts() {
+		LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+
+		PageRequest pageRequest = PageRequest.of(0, 3);
+
+		// 3. Repository 호출 및 결과 스트림 변환
+		return postRepository.findTop3WeeklyPosts(oneWeekAgo, pageRequest).stream()
+				// Post 엔티티를 PostResponse DTO로 명확하게 변환
+				.map(PostResponse::from)
+				.collect(Collectors.toList());
+	}
+
+	@Transactional
+	public boolean togglePostLike(Long postId, Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+		PostLike postLike = postLikeRepository.findByUserAndPost(user, post).orElse(null);
+
+		if (postLike != null) {
+			// 이미 좋아요를 눌렀다면 -> 좋아요 취소 (삭제)
+			postLikeRepository.delete(postLike);
+			post.decreaseLikeCount();
+			return false; // 좋아요 취소됨
+		} else {
+			// 좋아요를 누르지 않았다면 -> 좋아요 등록
+			PostLike newLike = PostLike.builder().user(user).post(post).build();
+			postLikeRepository.save(newLike);
+			post.increaseLikeCount();
+			return true; // 좋아요 등록됨
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public boolean isPostLiked(Long postId, Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+		return postLikeRepository.existsByUserAndPost(user, post);
+	}
+
 }

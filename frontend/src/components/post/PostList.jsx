@@ -6,9 +6,9 @@ import { useAuth } from '../../context/AuthContext';
 
 const getCategoryName = (param) => {
     switch (param) {
-        case 'free': return '자유게시판';
-        case 'review': return '공연 후기';
-        case 'accompany': return '동행 구하기';
+        case 'FREE': return '자유게시판';
+        case 'REVIEW': return '공연 후기';
+        case 'ACCOMPANY': return '동행 구하기';
         default: return '커뮤니티';
     }
 };
@@ -58,8 +58,8 @@ const PostList = () => {
 
     // 1. 카테고리 변경 또는 URL 페이지 쿼리 변경 시 첫 페이지 로드
     useEffect(() => {
-        if (!['free', 'review', 'accompany'].includes(category)) {
-            navigate('/community/free', { replace: true });
+        if (!['FREE', 'REVIEW', 'ACCOMPANY'].includes(category)) {
+            navigate('/community/FREE', { replace: true });
             return;
         }
 
