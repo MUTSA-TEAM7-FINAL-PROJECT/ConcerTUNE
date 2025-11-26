@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.dto.ArtistUpdateDto;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
@@ -12,11 +13,12 @@ import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,17 +32,13 @@ public class ArtistService {
     // 아티스트 목록 조회
     @Transactional(readOnly = true)
     public Page<ArtistSummaryDto> getArtistList(String name, Pageable pageable) {
-        Page<Artist> artistPage;
         if (StringUtils.hasText(name)) {
-            artistPage = artistRepository.findByArtistNameContainingIgnoreCase(name, pageable);
+            // 이름 검색 시 팔로워 수까지 한 번에 가져옴
+            return artistRepository.searchByNameWithFollowerCount(name, pageable);
         } else {
-            artistPage = artistRepository.findAll(pageable);
+            // 전체 조회 시 팔로워 수까지 한 번에 가져옴
+            return artistRepository.findAllWithFollowerCount(pageable);
         }
-
-        return artistPage.map(artist -> {
-            long followerCount = userArtistRepository.countByArtist(artist);
-            return ArtistSummaryDto.fromEntity(artist, followerCount);
-        });
     }
 
     // 아티스트 상세 정보 조회
@@ -116,5 +114,25 @@ public class ArtistService {
     private Artist findArtistById(Long artistId) {
         return artistRepository.findById(artistId)
                 .orElseThrow(() -> new ResourceNotFoundException("아티스트를 찾을 수 없습니다. ID: " + artistId));
+    }
+
+    // [추가] 아티스트 정보 수정 (PUT)
+    @Transactional
+    public void updateArtist(Long artistId, ArtistUpdateDto dto) {
+        Artist artist = findArtistById(artistId);
+
+        if (dto.getArtistName() != null) artist.setArtistName(dto.getArtistName());
+        if (dto.getArtistImageUrl() != null) artist.setArtistImageUrl(dto.getArtistImageUrl());
+        if (dto.getSnsUrl() != null) artist.setSnsUrl(dto.getSnsUrl());
+
+        // 장르 수정 로직 등은 필요 시 추가
+    }
+
+    // [추가] 아티스트 트랙 조회 (GET /track)
+    // 현재 Track 엔티티가 없으므로 빈 리스트를 반환하거나 임시 데이터를 반환하도록 구현
+    @Transactional(readOnly = true)
+    public List<String> getArtistTracks(Long artistId) {
+        // 실제로는 TrackRepository.findByArtistId(artistId) 등을 호출해야 함
+        return List.of("Track 1", "Track 2 (Demo)"); // 임시 데이터
     }
 }

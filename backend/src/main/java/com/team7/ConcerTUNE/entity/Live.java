@@ -74,9 +74,6 @@ public class Live extends BaseEntity {
   @Column(name = "status_updated_at")
   private LocalDateTime updatedAt;
 
-  @OneToMany(mappedBy = "live", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Post> posts = new ArrayList<>();
-
   @PrePersist
   public void prePersist() {
     if (createdAt == null) createdAt = LocalDateTime.now();

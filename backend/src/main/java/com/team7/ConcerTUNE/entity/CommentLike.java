@@ -1,22 +1,18 @@
 package com.team7.ConcerTUNE.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// 댓글 좋아요 엔티티
 @Entity
-@Table(name = "comment_likes")
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "comment_likes")
 public class CommentLike extends BaseEntity {
 
     @EmbeddedId
-    @Builder.Default
     private CommentLikeId id = new CommentLikeId();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,10 +25,10 @@ public class CommentLike extends BaseEntity {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
-    // 복합키 설정
-    public void setEmbeddedId() {
-        if (user != null && comment != null) {
-            this.id = new CommentLikeId(user.getId(), comment.getId());
-        }
+    @Builder
+    public CommentLike(User user, Comment comment) {
+        this.id = new CommentLikeId(user.getId(), comment.getId());
+        this.user = user;
+        this.comment = comment;
     }
 }

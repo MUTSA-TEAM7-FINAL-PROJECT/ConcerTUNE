@@ -23,11 +23,4 @@ public class LiveScheduleDto {
                 .liveStartTime(schedule.getLiveTime())
                 .build();
     }
-
-    public Schedule toNewScheduleEntity() {
-        return Schedule.builder()
-                .liveDate(this.liveDate)
-                .liveTime(this.liveStartTime)
-                .build();
-    }
 }

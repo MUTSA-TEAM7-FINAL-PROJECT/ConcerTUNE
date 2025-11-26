@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ArtistManagerRepository extends JpaRepository<ArtistManager, Long> {
     Optional<ArtistManager> findByIdUserIdAndIdArtistId(Long userId, Long artistId);
+    boolean existsByIdArtistIdAndIdUserId(Long artistId, Long userId);
 }

@@ -2,21 +2,17 @@ package com.team7.ConcerTUNE.entity;
 
 import com.team7.ConcerTUNE.util.StringListConverter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// 게시글 엔티티
 @Entity
-@Table(name = "posts")
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "posts")
 public class Post extends BaseEntity {
 
     @Id
@@ -31,25 +27,20 @@ public class Post extends BaseEntity {
     private String content;
 
     @Column(name = "comment_count")
-    @Builder.Default
     private Integer commentCount = 0;
 
     @Column(name = "view_count")
-    @Builder.Default
     private Integer viewCount = 0;
 
     @Column(name = "post_like_count")
-    @Builder.Default
     private Integer likeCount = 0;
 
     @Convert(converter = StringListConverter.class)
     @Column(name = "image_urls", columnDefinition = "TEXT")
-    @Builder.Default
     private List<String> imageUrls = new ArrayList<>();
 
     @Convert(converter = StringListConverter.class)
     @Column(name = "file_urls", columnDefinition = "TEXT")
-    @Builder.Default
     private List<String> fileUrls = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,42 +52,9 @@ public class Post extends BaseEntity {
     private CommunityCategoryType category;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private List<PostLike> likes = new ArrayList<>();
 
-    public void addComment(Comment comment) {
-        comments.add(comment);
-        commentCount = commentCount + 1;
-    }
-
-    public void removeComment(Comment comment) {
-        comments.remove(comment);
-        commentCount = Math.max(0, commentCount - 1);
-    }
-
-    public void increaseViewCount() {
-        viewCount = viewCount + 1;
-    }
-
-    public void increaseLikeCount() {
-        likeCount = likeCount + 1;
-    }
-
-    public void decreaseLikeCount() {
-        likeCount = Math.max(0, likeCount - 1);
-    }
-
-    public void update(String title, String content, List<String> imageUrls, List<String> fileUrls) {
-        this.title = title;
-        this.content = content;
-        this.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
-        this.fileUrls = fileUrls != null ? new ArrayList<>(fileUrls) : new ArrayList<>();
-    }
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "live_id")
-    private Live live;
 }

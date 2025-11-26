@@ -13,13 +13,13 @@ public class ArtistSummaryDto {
     private String artistImageUrl;
     private long followerCount;
 
-    // 하나로 가능?
-    public static ArtistSummaryDto fromEntity(Artist artist) {
-        return ArtistSummaryDto.builder()
-                .artistId(artist.getArtistId())
-                .artistName(artist.getArtistName())
-                .artistImageUrl(artist.getArtistImageUrl())
-                .build();
+    // JPQL 프로젝션을 위한 생성자 추가
+    // COUNT(ua)는 Long 타입으로 반환되므로 이를 처리
+    public ArtistSummaryDto(Long artistId, String artistName, String artistImageUrl, Long followerCount) {
+        this.artistId = artistId;
+        this.artistName = artistName;
+        this.artistImageUrl = artistImageUrl;
+        this.followerCount = followerCount != null ? followerCount : 0L;
     }
 
     public static ArtistSummaryDto fromEntity(Artist artist, long followerCount) {

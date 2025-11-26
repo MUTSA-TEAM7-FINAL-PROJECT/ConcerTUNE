@@ -32,6 +32,7 @@ public class Artist extends BaseEntity {
     private String artistImageUrl;
 
     @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<ArtistGenre> artistGenres = new HashSet<>();
 
     // 아티스트 페이지를 관리하는 유저 계정
@@ -50,4 +51,12 @@ public class Artist extends BaseEntity {
         artistGenres.removeIf(ag -> ag.getGenre().equals(genre) && ag.getArtist().equals(this));
         genre.getArtistGenres().removeIf(ag -> ag.getGenre().equals(genre) && ag.getArtist().equals(this));
     }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "artist_type")
+    private ArtistType artistType; // INDIE, MAJOR, BUSKER 등
+
+    @Column(name = "is_verified", nullable = false)
+    @Builder.Default
+    private boolean isVerified = false; // 법적 허가/본인 인증 완료 여부
 }
