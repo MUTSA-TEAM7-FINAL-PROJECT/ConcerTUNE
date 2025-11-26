@@ -1,5 +1,6 @@
 package com.team7.ConcerTUNE.service;
 
+import com.team7.ConcerTUNE.dto.GenrePreferenceRequest;
 import com.team7.ConcerTUNE.dto.UserResponse;
 import com.team7.ConcerTUNE.dto.UserUpdateRequest;
 import com.team7.ConcerTUNE.entity.User;
@@ -13,61 +14,57 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
+
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
 
-    //내 프로필 조회
     public UserResponse getMyProfile(User user) {
-        return UserResponse.from(user);
+        User me = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        return UserResponse.from(me);
     }
 
-    //유저 프로필 조회
     public UserResponse findById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         return UserResponse.from(user);
     }
 
-    // 유저 엔티티 반환
     public User findEntityById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
-    //내 프로필 수정
     @Transactional
     public UserResponse updateMyProfile(User user, UserUpdateRequest request) {
 
-        // 닉네임 변경
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
             user.setUsername(request.getUsername());
         }
 
-        // 소개글 변경
         if (request.getBio() != null) {
             user.setBio(request.getBio());
         }
 
-        // 전화번호 변경
         if (request.getPhoneNum() != null) {
             user.setPhoneNum(request.getPhoneNum());
         }
 
-        // 태그 변경 (문자열 형태로 저장)
-        if (request.getTags() != null) {
-            user.setTags(request.getTags());
+        if (request.getGenrePreferences() != null) {
+            List<String> tags = request.getGenrePreferences().stream()
+                    .map(GenrePreferenceRequest::getGenreName)
+                    .toList();
+            user.getTags().clear();
+            user.getTags().addAll(tags);
         }
 
         userRepository.save(user);
@@ -75,54 +72,51 @@ public class UserService {
         return UserResponse.from(user);
     }
 
-
-    //내 프로필 이미지 등록
-    public UserResponse uploadProfileImage(User user, MultipartFile imageFile) throws IOException {
-        if (imageFile == null || imageFile.isEmpty()) throw new BadRequestException("파일이 비어있습니다.");
-        if (imageFile.getContentType() == null || !imageFile.getContentType().startsWith("image/")) {
-            throw new org.apache.coyote.BadRequestException("이미지 파일만 업로드 가능합니다.");
+    @Transactional
+    public UserResponse uploadProfileImage(User user, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("파일이 비어있습니다.");
         }
 
-        deleteOldProfileImage(user.getProfileImageUrl());
+        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+            throw new BadRequestException("이미지 파일만 업로드 가능합니다.");
+        }
 
-        String ext = imageFile.getOriginalFilename()
-                .substring(imageFile.getOriginalFilename().lastIndexOf("."));
-        String stored = UUID.randomUUID() + ext;
+        String oldUrl = user.getProfileImageUrl();
 
-        Path dir = Paths.get(uploadDir);
-        if (!Files.exists(dir)) Files.createDirectories(dir);
-        Path path = dir.resolve(stored);
-        Files.copy(imageFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+        if (oldUrl != null && isS3Url(oldUrl)) {
+            fileStorageService.deleteFile(oldUrl);
+        }
 
-        String newUrl = "/api/upload/profiles/" + stored;
+        String newUrl = fileStorageService.uploadFile(file, "profiles");
         user.setProfileImageUrl(newUrl);
         userRepository.save(user);
 
         return UserResponse.from(user);
     }
 
-    //내 프로필 이미지 삭제
-    public UserResponse deleteProfileImage(User user) throws IOException{
-        if (user.getProfileImageUrl() == null || user.getProfileImageUrl().isBlank()) {
+    @Transactional
+    public UserResponse deleteProfileImage(User user) {
+        String oldUrl = user.getProfileImageUrl();
+
+        if (oldUrl == null || oldUrl.isBlank()) {
             throw new IllegalStateException("삭제할 프로필 이미지가 없습니다.");
         }
 
-        deleteOldProfileImage(user.getProfileImageUrl());
+        if (isS3Url(oldUrl)) {
+            fileStorageService.deleteFile(oldUrl);
+        }
+
         user.setProfileImageUrl(null);
         userRepository.save(user);
 
         return UserResponse.from(user);
     }
 
-    //예전 이미지 삭제
-    public void deleteOldProfileImage(String imageUrl) throws IOException{
-        if (imageUrl == null || !imageUrl.isBlank()) return;
-        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-        Path oldPath = Paths.get(uploadDir).resolve(fileName);
-        Files.deleteIfExists(oldPath);
+    private boolean isS3Url(String url) {
+        return url != null && url.contains(bucketName);
     }
 
-    //계정 탈퇴
     public void deleteUser(User user) {
         userRepository.delete(user);
     }

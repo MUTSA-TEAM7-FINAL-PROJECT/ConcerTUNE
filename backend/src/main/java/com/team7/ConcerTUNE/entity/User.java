@@ -4,6 +4,9 @@ import com.team7.ConcerTUNE.dto.RegisterRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -45,16 +48,25 @@ public class User extends BaseEntity   {
     private String bio;
 
     @Column(columnDefinition = "TEXT")
-    private String tags;
+    @ElementCollection
+    private List<String> tags = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(length = 48, nullable = false)
     private AuthRole auth = AuthRole.USER;
 
+    // 내가 팔로우한 유저들 리스트
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followings = new ArrayList<>();
+
+    // 나를 팔로우한 유저들 리스트
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers = new ArrayList<>();
+
     @Builder
     public User(String email, String password, String username, AuthRole auth,
                 String phoneNum, String profileImageUrl, String providerId,
-                Boolean enabled, AuthProvider provider, String bio, String tags) {
+                Boolean enabled, AuthProvider provider, String bio, List<String> tags) {
         this.email = email;
         this.password = password;
         this.username = username;

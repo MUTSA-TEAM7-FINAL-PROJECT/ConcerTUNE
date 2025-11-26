@@ -4,6 +4,7 @@ import com.team7.ConcerTUNE.dto.UserFollowResponse;
 import com.team7.ConcerTUNE.dto.UserResponse;
 import com.team7.ConcerTUNE.dto.UserUpdateRequest;
 import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.service.FollowService;
 import com.team7.ConcerTUNE.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,8 @@ public class UserController {
     //내 프로필 보기
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal SimpleUserDetails principal) {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(userService.getMyProfile(user));
     }
 
@@ -41,33 +43,37 @@ public class UserController {
     @PatchMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> updateMyProfile(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal SimpleUserDetails principal,
             @RequestBody UserUpdateRequest request
     ) {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(userService.updateMyProfile(user, request));
     }
 
 
     //내 프로필 이미지 등록
-    @PostMapping("/me/profile-image")
+    @PatchMapping("/me/profile-image")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponse> uploadProfileImage(
-            @AuthenticationPrincipal User user,
-            @RequestParam("image") MultipartFile imageFile) throws IOException {
+            @AuthenticationPrincipal SimpleUserDetails principal,
+            @RequestParam("file") MultipartFile imageFile) throws IOException {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(userService.uploadProfileImage(user, imageFile));
     }
 
     //내 프로필 이미지 삭제
     @DeleteMapping("/me/profile-image")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserResponse> deleteProfileImage(@AuthenticationPrincipal User user) throws IOException {
+    public ResponseEntity<UserResponse> deleteProfileImage(@AuthenticationPrincipal SimpleUserDetails principal) throws IOException {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(userService.deleteProfileImage(user));
     }
 
     //계정 삭제
     @DeleteMapping("/me")
     @PreAuthorize("hasRole('USER', 'ADMIN')")
-    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal User user) {
+    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal SimpleUserDetails principal) {
+        User user = userService.findEntityById(principal.getUserId());
         userService.deleteUser(user);
         return ResponseEntity.noContent().build();
     }
@@ -76,18 +82,32 @@ public class UserController {
     @PostMapping("/{targetId}/follow")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> toggleFollow(
-            @AuthenticationPrincipal User follower,
+            @AuthenticationPrincipal SimpleUserDetails principal,
             @PathVariable Long targetId) {
+        User follower = userService.findEntityById(principal.getUserId());
         followService.toggleFollow(follower, targetId);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{targetId}/is-following")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Boolean> isFollowing(
+            @AuthenticationPrincipal SimpleUserDetails principal,
+            @PathVariable Long targetId
+    ) {
+        User me = userService.findEntityById(principal.getUserId());
+        boolean isFollowing = followService.isFollowing(me, targetId);
+        return ResponseEntity.ok(isFollowing);
+    }
+
 
     //팔로워 유저들 조회
     @GetMapping("/me/followers")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<UserFollowResponse>> getMyFollowers(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal SimpleUserDetails principal,
             Pageable pageable) {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(followService.getFollowers(user, pageable));
     }
 
@@ -95,8 +115,29 @@ public class UserController {
     @GetMapping("/me/following")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<UserFollowResponse>> getMyFollowing(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal SimpleUserDetails principal,
             Pageable pageable) {
+        User user = userService.findEntityById(principal.getUserId());
         return ResponseEntity.ok(followService.getFollowings(user, pageable));
+    }
+
+    // 특정 유저의 팔로워 조회
+    @GetMapping("/{userId}/followers")
+    public ResponseEntity<Page<UserFollowResponse>> getFollowersOfUser(
+            @PathVariable Long userId,
+            Pageable pageable
+    ) {
+        User target = userService.findEntityById(userId);
+        return ResponseEntity.ok(followService.getFollowers(target, pageable));
+    }
+
+    // 특정 유저의 팔로잉 조회
+    @GetMapping("/{userId}/followings")
+    public ResponseEntity<Page<UserFollowResponse>> getFollowingsOfUser(
+            @PathVariable Long userId,
+            Pageable pageable
+    ) {
+        User target = userService.findEntityById(userId);
+        return ResponseEntity.ok(followService.getFollowings(target, pageable));
     }
 }
