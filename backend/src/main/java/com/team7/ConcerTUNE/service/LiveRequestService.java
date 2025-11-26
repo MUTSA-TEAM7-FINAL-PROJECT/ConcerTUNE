@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.LiveRequest;
 import com.team7.ConcerTUNE.dto.LiveResponse;
+import com.team7.ConcerTUNE.dto.NewArtistRequest;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.BadRequestException;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
@@ -56,13 +57,27 @@ public class LiveRequestService {
                 })
                 .toList();
 
-        // 아티스트 링크
         List<LiveArtist> liveArtists = new ArrayList<>();
-        if (request.getArtistIds() != null) {
-            for (Long artistId : request.getArtistIds()) {
+
+        if (request.getExistingArtistIds() != null) {
+            for (Long artistId : request.getExistingArtistIds()) {
                 Artist artist = artistRepository.findById(artistId)
                         .orElseThrow(() ->
                                 new IllegalArgumentException("존재하지 않는 아티스트 ID: " + artistId));
+
+                liveArtists.add(
+                        LiveArtist.builder()
+                                .live(live)
+                                .artist(artist)
+                                .build()
+                );
+            }
+        }
+
+        if (request.getNewArtistRequests() != null) {
+            for (NewArtistRequest artistDto : request.getNewArtistRequests()) {
+                Artist artist = artistDto.toNewArtistEntity();
+                artist = artistRepository.save(artist);
 
                 liveArtists.add(
                         LiveArtist.builder()
@@ -118,17 +133,39 @@ public class LiveRequestService {
         targetLive.setPrice(liveRequest.getPrice());
         targetLive.setTicketDateTime(liveRequest.getTicketDateTime());
 
-        if (liveRequest.getArtistIds() != null) {
+        if (liveRequest.getExistingArtistIds() != null || liveRequest.getNewArtistRequests() != null) {
             liveArtistRepository.deleteByLive(targetLive);
 
-            List<Artist> artists = artistRepository.findAllById(liveRequest.getArtistIds());
+            List<LiveArtist> links = new ArrayList<>();
 
-            List<LiveArtist> links = artists.stream()
-                    .map(artist -> LiveArtist.builder()
-                            .live(targetLive)
-                            .artist(artist)
-                            .build())
-                    .toList();
+            if (liveRequest.getExistingArtistIds() != null) {
+                List<Artist> artists = artistRepository.findAllById(liveRequest.getExistingArtistIds());
+
+                List<LiveArtist> existingLinks = artists.stream()
+                        .map(artist -> LiveArtist.builder()
+                                .live(targetLive)
+                                .artist(artist)
+                                .build())
+                        .toList();
+
+                links.addAll(existingLinks);
+            }
+
+            if (liveRequest.getNewArtistRequests() != null) {
+                List<LiveArtist> newArtistLinks = liveRequest.getNewArtistRequests().stream()
+                        .map(dto -> {
+                            Artist artist = dto.toNewArtistEntity();
+                            artist = artistRepository.save(artist);
+
+                            return LiveArtist.builder()
+                                    .live(targetLive)
+                                    .artist(artist)
+                                    .build();
+                        })
+                        .toList();
+
+                links.addAll(newArtistLinks);
+            }
 
             liveArtistRepository.saveAll(links);
             targetLive.getLiveArtists().clear();
@@ -158,6 +195,8 @@ public class LiveRequestService {
 
         return LiveResponse.fromEntity(targetLive);
     }
+
+
 
     // 편의 메서드
     private User getAdminFromAuth(org.springframework.security.core.Authentication authentication) {
