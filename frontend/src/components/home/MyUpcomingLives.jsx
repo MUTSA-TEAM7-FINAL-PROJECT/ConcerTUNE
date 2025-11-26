@@ -32,7 +32,6 @@ const MyUpcomingLives = () => {
                 setFollowedLives(livesData || []);
 
             } catch (err) {
-                console.error("개인 맞춤 라이브 조회 실패:", err);
                 setError("개인 맞춤 정보를 불러오는 데 실패했습니다."); 
             } finally {
                 setIsLoading(false);
@@ -66,7 +65,7 @@ const MyUpcomingLives = () => {
                 <h4 className="text-lg font-semibold text-gray-800 mb-3">팔로우 아티스트 예정 공연 ({followedLives.length}건)</h4>
                 {followedLives.length > 0 ? (
                     <ul className="space-y-2">
-                        {followedLives.slice(0, 3).map(live => ( 
+                        {followedLives.slice(0, 10).map(live => ( 
                             <li key={live.id} className="text-sm p-2 bg-white rounded border border-gray-200 hover:bg-gray-50">
                                 <Link to={`/concerts/${live.id}`}>
                                     {live.title} - {live.schedule?.liveDate || '날짜 미정'}

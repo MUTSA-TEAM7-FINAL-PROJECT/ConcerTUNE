@@ -24,7 +24,7 @@ const myPageService = {
   },
 
   // 내 프로필 이미지 수정
-  updateMyProfileImage: async (file) => {
+  uploadProfileImage : async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -39,20 +39,7 @@ const myPageService = {
     }
   },
 
-  // 내 콘텐츠(북마크, 작성글 등)
-  getMyContents: async () => {
-    try {
-      const res = await api.get("/api/users/me/contents");
-      return res.data;
-    } catch (error) {
-      console.error("내 콘텐츠 조회 실패:", error);
-      return {
-        bookmarkedLives: [],
-        followedArtists: [],
-        myPosts: [],
-      };
-    }
-  },
+  
 };
 
 export default myPageService;

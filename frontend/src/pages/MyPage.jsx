@@ -6,6 +6,7 @@ import ProfileEditModal from "../components/modal/ProfileEditModal";
 import ProfileImageModal from "../components/modal/ProfileImageModal";
 import FollowModal from "../components/modal/FollowModal";
 import myPageService from "../services/myPageService";
+import userService from "../services/userService";
 import {
   FaPencilAlt,
   FaStar,
@@ -129,7 +130,7 @@ const MyPage = () => {
       setProfileData(profile);
 
       if (profile.id) {
-        const contents = await myPageService.getUserContents(profile.id);
+        const contents = await userService.getUserContents(profile.id);
         setTabContents({
           bookmarkedLives: contents.bookmarkedLives || [],
           followedArtists: contents.followedArtists || [],

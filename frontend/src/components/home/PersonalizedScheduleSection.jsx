@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import userService from '../../services/userService';
+import concertService from '../../services/concertService';
 import ScheduleCalendar from '../schedule/ScheduleCalendar'; 
 
 const PersonalizedScheduleSection = ({ userId }) => {
@@ -19,7 +19,7 @@ const PersonalizedScheduleSection = ({ userId }) => {
             setError(null);    
             
             try {
-                const data = await userService.getPersonalizedSchedules(userId); 
+                const data = await concertService.getPersonalizedSchedules(userId); 
                 
                 setSchedules(Array.isArray(data) ? data : []); 
             } catch (err) {

@@ -59,8 +59,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Query("SELECT p FROM Post p WHERE p.writer.id = :userId ORDER BY p.createdAt DESC")
 	Page<Post> findByWriterId(@Param("userId") Long userId, Pageable pageable);
 
+	List<Post> findByWriterId(Long userId);
 
-    @Query("""
+
+	@Query("""
       select p
       from Bookmark b
       join b.live l

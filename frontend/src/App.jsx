@@ -16,14 +16,14 @@ import PostDetail from "./components/post/PostDetail";
 import PostWriteEdit from "./components/post/PostWriteEdit";
 import ConcertDetailPage from "./pages/ConcertDetailPage";
 import ConcertRequestPage from "./pages/ConcertRequestPage";
-import ProfilePage from "./pages/ProfilePage"; // 32-브랜치 (내 프로필 상세)
-import ProfileUpdatePage from "./pages/ProfileUpdatePage"; // 32-브랜치
-import UserPage from "./pages/UserPage"; // 32-브랜치 (타인 프로필)
-import RequestListPage from "./pages/RequestListPage"; // develop 브랜치
-import ArtistManagerRequestListPage from "./pages/ArtistManagerRequestListPage"; // develop 브랜치
-import ArtistManagerRequestPage from "./pages/ArtistManagerRequestPage"; // develop 브랜치
-import SearchResultPage from "./pages/SearchResultPage"; // develop 브랜치
-import MyPage from "./pages/MyPage"; // develop 브랜치 (내 프로필 상세)
+import ProfilePage from "./pages/ProfilePage";
+import ProfileUpdatePage from "./pages/ProfileUpdatePage"; 
+import UserPage from "./pages/UserPage"; 
+import RequestListPage from "./pages/RequestListPage"; 
+import ArtistManagerRequestListPage from "./pages/ArtistManagerRequestListPage";
+import ArtistManagerRequestPage from "./pages/ArtistManagerRequestPage"; 
+import SearchResultPage from "./pages/SearchResultPage"; 
+import MyPage from "./pages/MyPage"; 
 
 const App = () => {
   return (

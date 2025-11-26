@@ -1,8 +1,6 @@
 package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.dto.UserFollowResponse;
-import com.team7.ConcerTUNE.dto.UserResponse;
-import com.team7.ConcerTUNE.dto.UserUpdateRequest;
+import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.service.FollowService;
@@ -17,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -140,4 +141,19 @@ public class UserController {
         User target = userService.findEntityById(userId);
         return ResponseEntity.ok(followService.getFollowings(target, pageable));
     }
+
+    @GetMapping("/{userId}/contents")
+    public Map<String, Object> getUserContents(@PathVariable Long userId) {
+        List<LiveDto> bookmarkedLives = userService.getBookmarkedLivesDto(userId);
+        List<ArtistDto> followedArtists = userService.getFollowedArtistsDto(userId);
+        List<PostDto> myPosts = userService.getMyPostsDto(userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("bookmarkedLives", bookmarkedLives);
+        response.put("followedArtists", followedArtists);
+        response.put("myPosts", myPosts);
+
+        return response;
+    }
+
 }

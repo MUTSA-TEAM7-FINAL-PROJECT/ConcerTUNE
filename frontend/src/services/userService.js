@@ -59,6 +59,21 @@ const userService = {
       return { content: [], totalPages: 0 };
     }
   },
+
+  // 내 콘텐츠(북마크, 작성글 등)
+  getUserContents : async (userID) => {
+    try {
+      const res = await api.get(`/api/users/${userID}/contents`);
+      return res.data;
+    } catch (error) {
+      console.error("내 콘텐츠 조회 실패:", error);
+      return {
+        bookmarkedLives: [],
+        followedArtists: [],
+        myPosts: [],
+      };
+    }
+  },
 };
 
 export default userService;

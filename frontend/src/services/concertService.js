@@ -78,7 +78,6 @@ const concertService = {
         }
     },
 
-    // 1. 북마크된 라이브 리뷰 목록 조회 (GET /api/lives/reviews)
     getBookmarkedLiveReviews: async () => {
         try {
             const response = await api.get(`/api/bookmarks/reviews`);
@@ -89,7 +88,6 @@ const concertService = {
         }
     },
 
-    // 2. 가장 가까운 북마크 라이브 1건 (GET /nearest)
     getNearestBookmarkedLive: async () => {
         const response = await api.get(`/api/bookmarks/nearest`);
         return response.data;
@@ -103,13 +101,10 @@ const concertService = {
 
     
 
-    // 3. 월별 라이브 일정 조회 (GET /schedules)
     getLivesByYearAndMonth: async (year, month) => {
-        console.log("ㅎㅇ");
         const response = await api.get(`/api/lives/schedules`, {
             params: { year, month }
         });
-        // List<LiveSummaryResponse> 반환
         return response.data;
     },
 
@@ -126,7 +121,22 @@ const concertService = {
             console.error("다가오는 공연 조회 실패:", err);
             throw new Error(err.response?.data?.message || "다가오는 공연을 불러오는 데 실패했습니다.");
         }
-    }
+    },
+
+    getPersonalizedSchedules: async (userId) => {
+        try {
+            console.log("Fetching personalized schedules for userId:", userId);
+            const response = await api.get('/api/schedules/personalized', { params: { userId } }); 
+            
+            if (response.status === 204) {
+                return [];
+            }
+            return response.data; 
+        } catch (err) {
+            console.error("개인화된 스케줄 조회 실패:", err);
+            throw new Error(err.response?.data?.message || "스케줄을 불러오는 데 실패했습니다.");
+        }
+    }   
 };
 
 export default concertService;
