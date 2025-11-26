@@ -16,4 +16,6 @@ public interface LiveRepository extends JpaRepository<Live, Long> {
 
     Page<Live> findAllByRequestStatusIn(List<RequestStatus> statuses, Pageable pageable);
 
+    Page<Live> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
 }

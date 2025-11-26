@@ -99,12 +99,12 @@ const ConcertDetailPage = () => {
                             <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-300 group-hover:border-indigo-500 shadow-md mb-2">
                                 <img
                                     src={artist.artistImageUrl || "https://placehold.co/80x80/eeeeee/cccccc?text=NO+IMG"}
-                                    alt={artist.name}
+                                    alt={artist.artistName}
                                     className="w-full h-full object-cover"
                                     onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/80x80/eeeeee/cccccc?text=NO+IMG" }}
                                 />
                             </div>
-                            <span className="font-semibold text-gray-800 text-base group-hover:text-indigo-600">{artist.name}</span>
+                            <span className="font-semibold text-gray-800 text-base group-hover:text-indigo-600">{artist.artistName}</span>
                         </Link>
                     ))}
                 </div>
@@ -115,13 +115,13 @@ const ConcertDetailPage = () => {
     // 💡 일정/가격 정보 렌더링 함수
     const renderScheduleAndPriceContent = () => {
         const hasSchedules = concert.schedules && concert.schedules.length > 0;
-        const hasPrices = concert.seatPrices && Object.keys(concert.seatPrices).length > 0;
+        const hasPrices = concert.price && Object.keys(concert.price).length > 0;
 
         return (
             <div className="p-6 bg-white border border-t-0 rounded-b-xl shadow-lg space-y-8">
                 {/* 일정 정보 */}
                 <div className="border-b pb-4">
-                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">🗓️ 전체 공연 일정</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">전체 공연 일정</h3>
                     {!hasSchedules ? (
                         <p className="text-gray-500">등록된 공연 일정이 없습니다.</p>
                     ) : (
@@ -132,8 +132,8 @@ const ConcertDetailPage = () => {
                                     {schedule.liveDate ? 
                                         schedule.liveDate : '날짜 미정'}
                                     <span className="font-bold text-gray-600">/ 시간:</span> 
-                                    {schedule.liveTime ? 
-                                        schedule.liveTime : '시간 미정'}
+                                    {schedule.liveStartTime ? 
+                                        schedule.liveStartTime : '시간 미정'}
                                 </li>
                             ))}
                         </ul>
@@ -142,12 +142,12 @@ const ConcertDetailPage = () => {
 
                 {/* 가격 정보 */}
                 <div>
-                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">💰 가격 정보</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">가격 정보</h3>
                     {!hasPrices ? (
                         <p className="text-gray-500">등록된 좌석 가격 정보가 없습니다.</p>
                     ) : (
                          <ul className="space-y-1 text-lg">
-                            {Object.entries(concert.seatPrices).map(([seatType, price]) => (
+                            {Object.entries(concert.price).map(([seatType, price]) => (
                                 <li key={seatType} className="text-gray-800 font-medium">
                                     <span className="text-gray-600">{seatType}석:</span> 
                                     <span className="font-bold text-red-600 ml-2">{price.toLocaleString()}원</span>
@@ -167,13 +167,13 @@ const ConcertDetailPage = () => {
         let categoryParam = '';
         switch (activeTab) {
             case "자유게시판":
-                categoryParam = 'free'; 
+                categoryParam = 'FREE'; 
                 break;
             case "동행 게시판":
-                categoryParam = 'accompany';
+                categoryParam = 'ACCOMPANY';
                 break;
             case "후기":
-                categoryParam = 'review';
+                categoryParam = 'REVIEW';
                 break;
             case "아티스트":
                 return renderArtistContent();
@@ -265,16 +265,16 @@ const ConcertDetailPage = () => {
                                 첫 공연일: 
                                 <span className="text-gray-800 ml-2">
                                     {new Date(firstSchedule.liveDate).toLocaleDateString('ko-KR')} 
-                                    / {new Date(firstSchedule.liveTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                    /  {firstSchedule.liveStartTime}
                                 </span>
                             </p>
                         )}
                         
-                        {concert.seatPrices && Object.keys(concert.seatPrices).length > 0 && (
+                        {concert.price && Object.keys(concert.price).length > 0 && (
                              <p className="text-indigo-700 mt-2">
                                 가격: 
                                 <span className="text-red-600 font-bold ml-2">
-                                    {Math.min(...Object.values(concert.seatPrices)).toLocaleString()}원~
+                                    {Math.min(...Object.values(concert.price)).toLocaleString()}원~
                                 </span>
                             </p>
                         )}

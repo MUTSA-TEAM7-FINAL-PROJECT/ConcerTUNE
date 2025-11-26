@@ -12,15 +12,15 @@ const CommunityPage = () => {
   return (
     <div className="w-full">
       <nav className="flex justify-between border-b border-gray-200 mb-6">
-        <NavLink to="free" className={getLinkClass}>
+        <NavLink to="FREE" className={getLinkClass}>
           자유게시판
         </NavLink>
         
-        <NavLink to="review" className={getLinkClass}>
+        <NavLink to="REVIEW" className={getLinkClass}>
           공연 후기
         </NavLink>
         
-        <NavLink to="accompany" className={getLinkClass}>
+        <NavLink to="ACOOMPANY" className={getLinkClass}>
           동행 구하기
         </NavLink>
       </nav>

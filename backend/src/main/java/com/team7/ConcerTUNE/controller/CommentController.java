@@ -3,6 +3,8 @@ package com.team7.ConcerTUNE.controller;
 import com.team7.ConcerTUNE.dto.CommentCreateRequest;
 import com.team7.ConcerTUNE.dto.CommentUpdateRequest;
 import com.team7.ConcerTUNE.dto.CommentResponse;
+import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.List;
 public class CommentController {
 
 	private final CommentService commentService;
+	private final AuthService authService;
 
 	// 게시글의 댓글 조회
 	@GetMapping("/api/posts/{postId}/comments")
@@ -103,5 +106,16 @@ public class CommentController {
 		log.info("댓글 좋아요 취소 요청: commentId={}, userId={}", commentId, userId);
 		CommentResponse comment = commentService.dislikeComment(commentId, userId);
 		return ResponseEntity.ok(comment);
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@GetMapping("/api/comments/{commentId}/like/status")
+	public ResponseEntity<Boolean> isCommentLiked(
+			@PathVariable Long commentId,
+			Authentication authentication
+	) {
+		User user = authService.getUserFromAuth(authentication);
+		boolean isLiked = commentService.isCommentLiked(commentId, user.getId());
+		return ResponseEntity.ok(isLiked);
 	}
 }

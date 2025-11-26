@@ -30,10 +30,10 @@ public class Live extends BaseEntity {
   @Column(columnDefinition = "TEXT")
   private String description;
 
-  @Column(name = "poster_url", length = 200)
+  @Column(columnDefinition = "TEXT")
   private String posterUrl;
 
-  @Column(name = "ticket_url", length = 200)
+  @Column(columnDefinition = "TEXT")
   private String ticketUrl;
 
   @Column(name = "ticket_date_time")

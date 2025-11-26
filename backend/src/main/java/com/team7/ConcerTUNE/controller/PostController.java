@@ -1,9 +1,12 @@
 package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.PostCreateRequest;
+import com.team7.ConcerTUNE.dto.PostCreateWithLIveIdRequest;
 import com.team7.ConcerTUNE.dto.PostUpdateRequest;
 import com.team7.ConcerTUNE.dto.PostResponse;
 import com.team7.ConcerTUNE.entity.CommunityCategoryType;
+import com.team7.ConcerTUNE.entity.User;
+import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,9 +32,10 @@ import java.util.List;
 public class PostController {
 
 	private final PostService postService;
+	private final AuthService authService;
 
 	// 카테고리별 게시글 조회
-	@GetMapping("/{category}")
+	@GetMapping("/category/{category}")
 	public ResponseEntity<Page<PostResponse>> getPostsByCategory(
 			@PathVariable CommunityCategoryType category,
 			@RequestParam(defaultValue = "0") int page,
@@ -43,19 +48,30 @@ public class PostController {
 	}
 
 	// 특정 게시글 조회
-	@GetMapping("/{category}/{postId}")
+	@GetMapping("/{postId}")
 	public ResponseEntity<PostResponse> getPost(
-			@PathVariable CommunityCategoryType category,
 			@PathVariable Long postId
 	) {
-		log.info("게시글 조회 요청: category={}, postId={}", category, postId);
-		PostResponse post = postService.getPost(postId, category);
+		log.info("게시글 조회 요청: postId={}",  postId);
+		PostResponse post = postService.getPost(postId);
 		return ResponseEntity.ok(post);
+	}
+
+	@GetMapping("/live/{liveId}/category/{category}")
+	public ResponseEntity<Page<PostResponse>> getPostsByLiveAndCategory(
+			@PathVariable Long liveId,
+			@PathVariable CommunityCategoryType category,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size
+	) {
+		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		Page<PostResponse> posts = postService.getPostsByLiveAndCategory(liveId, category, pageable);
+		return ResponseEntity.ok(posts);
 	}
 
 	// 게시글 작성
 	@PreAuthorize("isAuthenticated()")
-	@PostMapping("/{category}")
+	@PostMapping("/category/{category}")
 	public ResponseEntity<PostResponse> createPost(
 			@PathVariable CommunityCategoryType category,
 			@Valid @RequestBody PostCreateRequest request,
@@ -70,7 +86,7 @@ public class PostController {
 
 	// 게시글 수정
 	@PreAuthorize("isAuthenticated()")
-	@PutMapping("/{category}/{postId}")
+	@PutMapping("/category/{category}/postId/{postId}")
 	public ResponseEntity<PostResponse> updatePost(
 			@PathVariable CommunityCategoryType category,
 			@PathVariable Long postId,
@@ -86,7 +102,7 @@ public class PostController {
 
 	// 게시글 삭제
 	@PreAuthorize("isAuthenticated()")
-	@DeleteMapping("/{category}/{postId}")
+	@DeleteMapping("/category/{category}/postId/{postId}")
 	public ResponseEntity<Void> deletePost(
 			@PathVariable CommunityCategoryType category,
 			@PathVariable Long postId,
@@ -160,5 +176,23 @@ public class PostController {
 		log.info("게시글 좋아요 취소 요청: postId={}, userId={}", postId, userId);
 		PostResponse post = postService.dislikePost(postId, userId);
 		return ResponseEntity.ok(post);
+	}
+
+	@GetMapping("/top-weekly")
+	public ResponseEntity<List<PostResponse>> getTop3WeeklyPosts() {
+		List<PostResponse> topPosts = postService.getTop3WeeklyPosts();
+		return ResponseEntity.ok(topPosts);
+	}
+
+
+	@PreAuthorize("isAuthenticated()")
+	@GetMapping("/{postId}/like/status")
+	public ResponseEntity<Boolean> isPostLiked(
+			@PathVariable Long postId,
+			Authentication authentication
+	) {
+		User user = authService.getUserFromAuth(authentication);
+		boolean isLiked = postService.isPostLiked(postId, user.getId());
+		return ResponseEntity.ok(isLiked);
 	}
 }

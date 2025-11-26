@@ -56,7 +56,7 @@ const App = () => {
           />
                     {/* 커뮤니티 목록 및 탭 레이아웃 */}         {" "}
           <Route path="community" element={<CommunityPage />}>
-                        <Route index element={<Navigate to="free" replace />} />
+                        <Route index element={<Navigate to="FREE" replace />} />
                         <Route path=":category" element={<PostList />} />       
              {" "}
           </Route>

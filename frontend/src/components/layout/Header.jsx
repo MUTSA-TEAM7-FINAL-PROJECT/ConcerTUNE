@@ -42,7 +42,7 @@ const Header = () => {
                         </li>
                         <li>
                             <Link
-                                to="/community/free"
+                                to="/community/FREE"
                                 className="text-gray-600 hover:text-gray-900"
                             >
                                 커뮤니티

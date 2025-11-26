@@ -45,4 +45,10 @@ public interface UserArtistRepository extends JpaRepository<UserArtist, UserArti
             @Param("today") LocalDate today,
             @Param("now") LocalTime now
     );
+
+    @Query("SELECT ua FROM UserArtist ua WHERE ua.user.id = :userId AND ua.artist.artistId = :artistId")
+    Optional<UserArtist> findByUserIdAndArtistId(@Param("userId") Long userId, @Param("artistId") Long artistId);
+
+    List<UserArtist> findByUserId(Long userId);
+
 }

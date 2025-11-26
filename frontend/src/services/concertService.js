@@ -57,7 +57,7 @@ const concertService = {
 
     checkIsHearted: async (concertId) => {
         try {
-            const response = await api.get(`/api/lives/${concertId}/bookmarks/status`); 
+            const response = await api.get(`/api/bookmarks/${concertId}/status`); 
             return response.data;
         } catch (err) {
             console.error("북마크 상태 확인 실패:", err);
@@ -70,11 +70,61 @@ const concertService = {
 
     toggleBookmark: async (concertId) => {
         try {
-            const response = await api.post(`/api/lives/${concertId}/bookmarks`);
+            const response = await api.post(`/api/bookmarks/${concertId}`);
             return response.data; 
         } catch (err) {
             console.error("북마크 토글 실패:", err);
             throw new Error(err.response?.data?.message || "북마크 상태를 변경하는 데 실패했습니다.");
+        }
+    },
+
+    // 1. 북마크된 라이브 리뷰 목록 조회 (GET /api/lives/reviews)
+    getBookmarkedLiveReviews: async () => {
+        try {
+            const response = await api.get(`/api/bookmarks/reviews`);
+            return response.data; 
+        } catch (err) {
+            console.error("북마크 라이브 리뷰 조회 실패:", err);
+            throw new Error(err.response?.data?.message || "북마크된 라이브 리뷰를 불러오는 데 실패했습니다.");
+        }
+    },
+
+    // 2. 가장 가까운 북마크 라이브 1건 (GET /nearest)
+    getNearestBookmarkedLive: async () => {
+        const response = await api.get(`/api/bookmarks/nearest`);
+        return response.data;
+    },
+
+
+    getUpcomingLivesOfFollowedArtists: async () => {
+        const response = await api.get(`/api/artists/lives`);
+        return response.data;
+    },
+
+    
+
+    // 3. 월별 라이브 일정 조회 (GET /schedules)
+    getLivesByYearAndMonth: async (year, month) => {
+        console.log("ㅎㅇ");
+        const response = await api.get(`/api/lives/schedules`, {
+            params: { year, month }
+        });
+        // List<LiveSummaryResponse> 반환
+        return response.data;
+    },
+
+
+    getUpcomingLives: async (userId, n) => {
+        try {
+            const response = await api.get(`/api/lives/upcoming`, {
+                params: {
+                    n: n 
+                }
+            });
+            return response.data;
+        } catch (err) {
+            console.error("다가오는 공연 조회 실패:", err);
+            throw new Error(err.response?.data?.message || "다가오는 공연을 불러오는 데 실패했습니다.");
         }
     }
 };

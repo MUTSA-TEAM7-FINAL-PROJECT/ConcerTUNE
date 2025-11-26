@@ -10,6 +10,4 @@ import java.util.Optional;
 
 public interface ArtistRepository extends JpaRepository<Artist, Long> {
     Page<Artist> findByArtistNameContainingIgnoreCase(String name, Pageable pageable);
-
-    Optional<Artist> findByManager(User manager);
 }

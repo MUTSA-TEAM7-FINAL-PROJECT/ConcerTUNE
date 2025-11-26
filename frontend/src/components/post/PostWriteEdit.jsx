@@ -6,9 +6,9 @@ import fileService from '../../services/fileService'; // 파일 업로드 서비
 const getCategoryName = (param) => {
     // ... (PostList의 함수와 동일)
     switch (param) {
-        case 'free': return '자유게시판';
-        case 'review': return '공연 후기';
-        case 'accompany': return '동행 구하기';
+        case 'FREE': return '자유게시판';
+        case 'REVIEW': return '공연 후기';
+        case 'ACCOMPANY': return '동행 구하기';
         default: return '커뮤니티';
     }
 };

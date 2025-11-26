@@ -43,4 +43,9 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
             @Param("now") LocalTime now,
             Pageable pageable
     );
+
+    List<Bookmark> findByUserId(Long userId);
+
+    @Query("SELECT b.live.id FROM Bookmark b WHERE b.user.id = :userId")
+    List<Long> findLiveIdsByUserId(@Param("userId") Long userId);
 }

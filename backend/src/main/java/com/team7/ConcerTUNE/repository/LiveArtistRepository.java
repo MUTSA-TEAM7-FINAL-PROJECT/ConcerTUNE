@@ -12,4 +12,8 @@ public interface LiveArtistRepository extends JpaRepository<LiveArtist, Long> {
     List<LiveArtist> findAllByLiveId(Long liveId); // LiveArtist 엔티티 반환
 
     void deleteByLive(Live live);
+
+    List<LiveArtist> findByArtist_ArtistId(Long artistId);
+    List<LiveArtist> findByArtist_ArtistIdIn(List<Long> artistIds);
+
 }

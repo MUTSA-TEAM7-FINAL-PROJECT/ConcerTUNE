@@ -55,8 +55,8 @@ const TopWeeklyPosts = () => {
 
                         return (
                             <Link
-                                to={`/post/${post.postId}`}
-                                key={post.postId}
+                                to={`/post/${post.id}`}
+                                key={post.id}
                                 className="flex border rounded-lg shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 overflow-hidden bg-white"
                             >
                                 {/* 💡 썸네일 섹션 (이미지가 있을 경우) */}
