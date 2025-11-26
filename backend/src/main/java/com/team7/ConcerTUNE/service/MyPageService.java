@@ -1,15 +1,14 @@
 package com.team7.ConcerTUNE.temp.service;
 
-import com.team7.ConcerTUNE.dto.GenreDto;
+import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.repository.FollowRepository;
 import com.team7.ConcerTUNE.repository.UserArtistRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
-import com.team7.ConcerTUNE.temp.dto.*;
-import com.team7.ConcerTUNE.temp.repository.BookmarkRepository;
-import com.team7.ConcerTUNE.temp.repository.GenreRepository;
-import com.team7.ConcerTUNE.temp.repository.PostRepository;
-import com.team7.ConcerTUNE.temp.repository.UserGenrePreferenceRepository;
+import com.team7.ConcerTUNE.repository.BookmarkRepository;
+import com.team7.ConcerTUNE.repository.GenreRepository;
+import com.team7.ConcerTUNE.repository.PostRepository;
+import com.team7.ConcerTUNE.repository.UserGenrePreferenceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -5,11 +5,10 @@ import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.repository.LiveArtistRepository;
 import com.team7.ConcerTUNE.repository.UserArtistRepository;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.LiveScheduleResponseDto;
-import com.team7.ConcerTUNE.temp.repository.BookmarkRepository;
-import com.team7.ConcerTUNE.temp.repository.LiveRepository;
+import com.team7.ConcerTUNE.dto.LiveScheduleResponseDto;
+import com.team7.ConcerTUNE.repository.BookmarkRepository;
+import com.team7.ConcerTUNE.repository.LiveRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

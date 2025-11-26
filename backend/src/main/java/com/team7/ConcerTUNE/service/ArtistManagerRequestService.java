@@ -5,19 +5,20 @@ import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
 import com.team7.ConcerTUNE.repository.ArtistManagerRepository;
 import com.team7.ConcerTUNE.repository.ArtistRepository;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.ArtistManagerRequestCreateDto;
-import com.team7.ConcerTUNE.temp.dto.ArtistManagerRequestStatusUpdateDto;
-import com.team7.ConcerTUNE.temp.entity.ArtistManagerRequest;
-import com.team7.ConcerTUNE.temp.repository.ArtistManagerRequestRepository;
+import com.team7.ConcerTUNE.dto.ArtistManagerRequestCreateDto;
+import com.team7.ConcerTUNE.dto.ArtistManagerRequestStatusUpdateDto;
+import com.team7.ConcerTUNE.entity.ArtistManagerRequest;
+import com.team7.ConcerTUNE.event.ArtistManagerRequestEvent;
+import com.team7.ConcerTUNE.repository.ArtistManagerRequestRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ArtistManagerRequestService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final ArtistManagerRequestRepository requestRepository;
     private final ArtistManagerRepository artistManagerRepository;
     private final ArtistRepository artistRepository;
@@ -106,6 +108,7 @@ public class ArtistManagerRequestService {
 
             artistManagerRepository.save(newManager);
         }
+        eventPublisher.publishEvent(new ArtistManagerRequestEvent(this, request.getUser(), true));
 
         return request;
     }
@@ -118,6 +121,7 @@ public class ArtistManagerRequestService {
             throw new IllegalStateException("이미 처리된 요청입니다. 현재 상태: " + request.getStatus());
         }
         request.reject( adminNote);
+        eventPublisher.publishEvent(new ArtistManagerRequestEvent(this, request.getUser(), false));
 
         return requestRepository.save(request);
     }

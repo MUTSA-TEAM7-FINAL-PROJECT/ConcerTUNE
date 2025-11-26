@@ -1,13 +1,12 @@
 package com.team7.ConcerTUNE.temp.service;
 
+import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
-import com.team7.ConcerTUNE.repository.ArtistRepository;
-import com.team7.ConcerTUNE.repository.FollowRepository;
-import com.team7.ConcerTUNE.repository.LiveArtistRepository;
+import com.team7.ConcerTUNE.repository.*;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.*;
-import com.team7.ConcerTUNE.temp.repository.*;
+import com.team7.ConcerTUNE.event.LiveCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LiveService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final LiveRepository liveRepository;
     private final UserGenrePreferenceRepository userGenrePreferenceRepository;
     private final AuthService authService;
@@ -177,7 +176,9 @@ public class LiveService {
             liveSchedulesRepository.saveAll(newLiveSchedules);
             savedLive.setLiveSchedules(newLiveSchedules);
         }
-
+        for (Artist artist : savedLive.getLiveArtists().stream().map(LiveArtist::getArtist).toList()) {
+            eventPublisher.publishEvent(new LiveCreatedEvent(this, artist, savedLive.getId()));
+        }
         return savedLive;
     }
 

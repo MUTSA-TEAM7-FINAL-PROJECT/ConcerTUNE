@@ -5,6 +5,7 @@ import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.entity.Post;
 import com.team7.ConcerTUNE.temp.dto.*;
 import com.team7.ConcerTUNE.temp.service.MyPageService;
+import com.team7.ConcerTUNE.temp.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +20,19 @@ import java.util.Map;
 public class MyPageController {
 
     private final MyPageService myPageService;
-
+    private final SubscriptionService subscriptionService;
     @GetMapping("/{userId}/contents")
     public Map<String, Object> getUserContents(@PathVariable Long userId) {
         List<LiveDto> bookmarkedLives = myPageService.getBookmarkedLivesDto(userId);
         List<ArtistDto> followedArtists = myPageService.getFollowedArtistsDto(userId);
         List<PostDto> myPosts = myPageService.getMyPostsDto(userId);
+        List<ArtistDto> subscribedArtists = subscriptionService.getSubscribedArtists(userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("bookmarkedLives", bookmarkedLives);
         response.put("followedArtists", followedArtists);
         response.put("myPosts", myPosts);
+        response.put("subscriptions", subscribedArtists);
 
         return response;
     }

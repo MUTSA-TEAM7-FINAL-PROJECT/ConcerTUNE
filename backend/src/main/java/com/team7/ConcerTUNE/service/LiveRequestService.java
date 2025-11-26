@@ -5,11 +5,13 @@ import com.team7.ConcerTUNE.entity.RequestStatus;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.service.ArtistService;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestCreateDto;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestResponse;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestUpdateStatusDto;
-import com.team7.ConcerTUNE.temp.repository.LiveRequestRepository;
+import com.team7.ConcerTUNE.dto.LiveRequestCreateDto;
+import com.team7.ConcerTUNE.dto.LiveRequestResponse;
+import com.team7.ConcerTUNE.dto.LiveRequestUpdateStatusDto;
+import com.team7.ConcerTUNE.event.LiveRequestEvent;
+import com.team7.ConcerTUNE.repository.LiveRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class LiveRequestService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final LiveRequestRepository liveRequestRepository;
     private final ArtistService artistService;
     private final AuthService authService;
@@ -116,7 +119,7 @@ public class LiveRequestService {
                 throw new RuntimeException("Live 생성 중 오류가 발생했습니다.", e);
             }
         }
-
+        eventPublisher.publishEvent(new LiveRequestEvent(this, liveRequest, newStatus == RequestStatus.APPROVED));
         // 4. 응답 DTO 반환
         List<String> artistNames = artistService.getArtistNamesByIds(liveRequest.getArtistIds());
         return LiveRequestResponse.fromEntity(liveRequest, artistNames);

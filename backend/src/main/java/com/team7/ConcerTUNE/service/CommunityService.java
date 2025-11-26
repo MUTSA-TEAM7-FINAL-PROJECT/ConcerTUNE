@@ -1,15 +1,16 @@
 package com.team7.ConcerTUNE.temp.service;
 
+import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.repository.LivesRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.*;
-import com.team7.ConcerTUNE.temp.repository.CommentLikeRepository;
-import com.team7.ConcerTUNE.temp.repository.CommentRepository;
-import com.team7.ConcerTUNE.temp.repository.PostLikeRepository;
-import com.team7.ConcerTUNE.temp.repository.PostRepository;
+import com.team7.ConcerTUNE.event.CommentCreatedEvent;
+import com.team7.ConcerTUNE.repository.CommentRepository;
+import com.team7.ConcerTUNE.repository.PostLikeRepository;
+import com.team7.ConcerTUNE.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommunityService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
@@ -172,11 +173,6 @@ public class CommunityService {
         return posts;
     }
 
-    /**
-     * POST /api/posts/{postId}/like - 특정 게시글 추천 토글
-     * (비추천 토글은 `dislike` 엔드포인트로 구현되지만, 현재 엔티티는 `PostLike`만 있으므로,
-     * 여기서는 `like` 토글 로직만 구현하고 `dislike`는 `like`와 동일하게 작동한다고 가정하겠습니다.)
-     */
     @Transactional
     public boolean togglePostLike(Long postId, Long userId) {
         User user = userRepository.findById(userId)
@@ -213,12 +209,9 @@ public class CommunityService {
     }
 
     // **********************************
-    // 3. Comment (댓글) Logic
+    // 3. Comment (댓글)
     // **********************************
 
-    /**
-     * GET /api/posts/{postId}/comments - 특정 게시글의 댓글 목록 조회
-     */
     public List<CommentResponse> getCommentsByPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
@@ -245,6 +238,7 @@ public class CommunityService {
 
         // 게시글 댓글 수 증가
         post.incrementCommentCount();
+        eventPublisher.publishEvent(new CommentCreatedEvent(this, post, comment.getWriter()));
 
         return CommentResponse.from(savedComment);
     }

@@ -4,7 +4,7 @@ import com.team7.ConcerTUNE.entity.LiveArtist;
 import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.repository.LiveArtistRepository;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.FollowArtistFeedDto;
+import com.team7.ConcerTUNE.dto.FollowArtistFeedDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;

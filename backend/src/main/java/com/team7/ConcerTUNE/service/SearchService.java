@@ -4,7 +4,7 @@ import com.team7.ConcerTUNE.entity.Artist;
 import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.repository.ArtistRepository;
 import com.team7.ConcerTUNE.repository.LivesRepository;
-import com.team7.ConcerTUNE.temp.dto.SearchResponseDto;
+import com.team7.ConcerTUNE.dto.SearchResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
