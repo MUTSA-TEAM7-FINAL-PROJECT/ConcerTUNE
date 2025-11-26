@@ -20,5 +20,5 @@ public class LiveRequest {
     private Map<String, Integer> price;
     private LocalDateTime ticketDateTime;
     private List<Long> artistIds;
-    private List<Long> scheduleIds;
+    private List<LiveScheduleDto> schedules;
 }

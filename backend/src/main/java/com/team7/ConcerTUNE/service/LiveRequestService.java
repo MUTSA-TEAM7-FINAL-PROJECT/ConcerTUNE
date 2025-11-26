@@ -13,13 +13,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class LiveRequestService {
-    private final LiveRequestRepository liveRequestRepository;
     private final ArtistRepository artistRepository;
     private final UserRepository userRepository;
     private final LiveRepository liveRepository;
@@ -40,6 +41,41 @@ public class LiveRequestService {
                 .writer(user)
                 .build();
 
+        // 스케줄 생성
+        List<LiveSchedule> liveSchedules = Optional.ofNullable(request.getSchedules())
+                .orElseGet(List::of)
+                .stream()
+                .map(dto -> {
+                    Schedule schedule = dto.toNewScheduleEntity();
+                    schedule = scheduleRepository.save(schedule);
+
+                    return LiveSchedule.builder()
+                            .live(live)
+                            .schedule(schedule)
+                            .build();
+                })
+                .toList();
+
+        // 아티스트 링크
+        List<LiveArtist> liveArtists = new ArrayList<>();
+        if (request.getArtistIds() != null) {
+            for (Long artistId : request.getArtistIds()) {
+                Artist artist = artistRepository.findById(artistId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException("존재하지 않는 아티스트 ID: " + artistId));
+
+                liveArtists.add(
+                        LiveArtist.builder()
+                                .live(live)
+                                .artist(artist)
+                                .build()
+                );
+            }
+        }
+
+        live.setLiveSchedules(liveSchedules);
+        live.setLiveArtists(liveArtists);
+
         Live saved = liveRepository.save(live);
         return LiveResponse.fromEntity(saved);
     }
@@ -52,7 +88,7 @@ public class LiveRequestService {
 
     // 요청 개별 반환
     public LiveResponse getLiveRequest(Long liveRequestId) {
-        Live live = liveRequestRepository.findById(liveRequestId)
+        Live live = liveRepository.findByIdAndRequestStatus(liveRequestId, RequestStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다. ID: " + liveRequestId));
 
         return LiveResponse.fromEntity(live);
@@ -60,50 +96,14 @@ public class LiveRequestService {
 
     // 요청 승인 및 공연 등록
     public void approveRequest(Long liveRequestId) {
-        Live liveRequest = liveRequestRepository.findById(liveRequestId)
+        Live live = liveRepository.findById(liveRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다. ID: " + liveRequestId));
 
-        liveRequest.changeStatus(RequestStatus.APPROVED);
-
-        // 공연 등록
-        Live live = Live.builder()
-                .title(liveRequest.getTitle())
-                .description(liveRequest.getDescription())
-                .posterUrl(liveRequest.getPosterUrl())
-                .ticketUrl(liveRequest.getTicketUrl())
-                .ticketDateTime(liveRequest.getTicketDateTime())
-                .venue(liveRequest.getVenue())
-                .price(liveRequest.getPrice())
-                .writer(liveRequest.getWriter())
-                .build();
-
-        liveRepository.save(live);
-
-        if (liveRequest.getLiveArtists() != null && !liveRequest.getLiveArtists().isEmpty()) {
-            List<LiveArtist>newLinks = liveRequest.getLiveArtists().stream()
-                    .map(requestLink -> LiveArtist.builder()
-                            .live(live)
-                            .artist(requestLink.getArtist())
-                            .build())
-                    .toList();
-
-            liveArtistRepository.saveAll(newLinks);
-            live.setLiveArtists(newLinks);
+        if (live.getRequestStatus() != RequestStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 공연 요청입니다. status=" + live.getRequestStatus());
         }
 
-        if (liveRequest.getLiveSchedules() != null && !liveRequest.getLiveSchedules().isEmpty()) {
-            List<LiveSchedule> newSchedules = liveRequest.getLiveSchedules().stream()
-                    .map(requestSchedule -> LiveSchedule.builder()
-                            .live(live)
-                            .schedule(requestSchedule.getSchedule())
-                            .build())
-                    .toList();
-
-            liveScheduleRepository.saveAll(newSchedules);
-            live.setLiveSchedules(newSchedules);
-        }
-
-        liveRequestRepository.save(liveRequest);
+        live.changeStatus(RequestStatus.APPROVED);
     }
 
     public LiveResponse modifyLive(Long targetLiveId, LiveRequest liveRequest) {
@@ -135,31 +135,35 @@ public class LiveRequestService {
             targetLive.getLiveArtists().addAll(links);
         }
 
-        if (liveRequest.getScheduleIds() != null) {
+        if (liveRequest.getSchedules() != null) {
+
             liveScheduleRepository.deleteByLive(targetLive);
 
-            List<Schedule> schedules = scheduleRepository.findAllById(liveRequest.getScheduleIds());
+            List<LiveSchedule> liveSchedules = liveRequest.getSchedules().stream()
+                    .map(dto -> {
+                        Schedule schedule = dto.toNewScheduleEntity();
+                        schedule = scheduleRepository.save(schedule);
 
-            List<LiveSchedule> liveSchedules = schedules.stream()
-                    .map(schedule -> LiveSchedule.builder()
-                            .live(targetLive)
-                            .schedule(schedule)
-                            .build())
+                        return LiveSchedule.builder()
+                                .live(targetLive)
+                                .schedule(schedule)
+                                .build();
+                    })
                     .toList();
 
             liveScheduleRepository.saveAll(liveSchedules);
             targetLive.getLiveSchedules().clear();
             targetLive.getLiveSchedules().addAll(liveSchedules);
         }
+
         return LiveResponse.fromEntity(targetLive);
     }
 
     // 편의 메서드
     private User getAdminFromAuth(org.springframework.security.core.Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof SimpleUserDetails)) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof SimpleUserDetails userDetails)) {
             throw new BadRequestException("유효한 로그인 정보가 없습니다. (Auth is null or not SimpleUserDetails)");
         }
-        SimpleUserDetails userDetails = (SimpleUserDetails) authentication.getPrincipal();
 
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
