@@ -1,17 +1,21 @@
 package com.team7.ConcerTUNE.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// 댓글 엔티티
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "comments")
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Comment extends BaseEntity {
 
     @Id
@@ -23,6 +27,7 @@ public class Comment extends BaseEntity {
     private String content;
 
     @Column(name = "like_count")
+    @Builder.Default
     private Integer likeCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -33,7 +38,29 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC")
+    @Builder.Default
+    private List<Comment> replies = new ArrayList<>();
+
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CommentLike> likes = new ArrayList<>();
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void increaseLikeCount() {
+        likeCount = likeCount + 1;
+    }
+
+    public void decreaseLikeCount() {
+        likeCount = Math.max(0, likeCount - 1);
+    }
 
 }
