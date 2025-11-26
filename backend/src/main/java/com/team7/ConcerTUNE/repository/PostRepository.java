@@ -52,4 +52,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@EntityGraph(attributePaths = {"writer"})
 	@Query("SELECT p FROM Post p WHERE p.writer.id = :userId ORDER BY p.createdAt DESC")
 	Page<Post> findByWriterId(@Param("userId") Long userId, Pageable pageable);
+
+
+    @Query("""
+      select p
+      from Bookmark b
+      join b.live l
+      join Post p on p.live = l
+      where b.user = :user
+        and l.requestStatus = :status
+        and p.category = :category
+      order by p.createdAt desc
+      """)
+    List<Post> findReviewPostsForBookmarkedLives(
+            @Param("user") User user,
+            @Param("status") RequestStatus status,
+            @Param("category") CommunityCategoryType category
+    );
 }
+

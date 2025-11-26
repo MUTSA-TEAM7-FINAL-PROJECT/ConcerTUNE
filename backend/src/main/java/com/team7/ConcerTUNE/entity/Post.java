@@ -96,4 +96,7 @@ public class Post extends BaseEntity {
         this.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
         this.fileUrls = fileUrls != null ? new ArrayList<>(fileUrls) : new ArrayList<>();
     }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "live_id")
+    private Live live;
 }

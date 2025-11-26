@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Configuration
@@ -19,7 +20,7 @@ public class UserInitializer {
 
     private final UserRepository userRepository;
     private final  ArtistRepository artistRepository;
-    private final LivesRepository livesRepository;
+    private final LiveRepository livesRepository;
     private final LiveArtistRepository liveArtistRepository;
     private final ArtistManagerRepository artistManagerRepository; // 👈 추가
 
@@ -42,16 +43,16 @@ public class UserInitializer {
                     .email("user2@naver.com")
                     .password(encodedPassword)
                     .username(DEFAULT_USERNAME + "2")
-                    .auth(AuthRole.USER)
+                    .auth(AuthRole.ARTIST)
                     .provider(AuthProvider.LOCAL)
                     .enabled(true)
                     .build();
 
             User defaultUser3 = User.builder()
                     .email("user3@naver.com")
-                    .password(encodedPassword + "3")
-                    .username(DEFAULT_USERNAME)
-                    .auth(AuthRole.USER)
+                    .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+                    .username(DEFAULT_USERNAME + "3")
+                    .auth(AuthRole.ADMIN)
                     .provider(AuthProvider.LOCAL)
                     .enabled(true)
                     .build();
@@ -106,13 +107,14 @@ public class UserInitializer {
             // ------------------------------------
             // 4. 공연 (Lives) 생성 및 저장
             // ------------------------------------
-            Lives live = Lives.builder()
+            Live live = Live.builder()
                     .title("[Official] ConcerTUNE Debut Live")
                     .description("ConcerTUNE 공식 아티스트의 첫 라이브 공연입니다.")
                     .posterUrl("https://image.url/debut_poster.jpg")
                     .ticketUrl("https://ticket.url/debut")
                     .venue("Seoul Live Hall")
-                    .price(66000)
+                    .price(Map.of("VIP", 126000, "R", 66000))
+                    .writer(artistManagerUser)
                     .build();
 
             livesRepository.save(live);

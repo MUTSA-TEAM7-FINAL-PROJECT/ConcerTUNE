@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LiveSchedules {
+public class LiveSchedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +19,9 @@ public class LiveSchedules {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "live_id", nullable = false)
-  private Lives live;
+  private Live live;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "schedule_id", nullable = false)
-  private Schedules schedule;
+  private Schedule schedule;
 }

@@ -2,7 +2,10 @@ package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.ArtistDetailDto;
 import com.team7.ConcerTUNE.dto.ArtistSummaryDto;
+import com.team7.ConcerTUNE.dto.LiveSummaryResponse;
+import com.team7.ConcerTUNE.security.SimpleUserDetails;
 import com.team7.ConcerTUNE.service.ArtistService;
+import com.team7.ConcerTUNE.service.LiveService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,13 +15,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/artists")
 @RequiredArgsConstructor
 public class ArtistController {
     private final ArtistService artistService;
+    private final LiveService liveService;
 
     // 아티스트 목록 조회
     @GetMapping
@@ -57,6 +64,19 @@ public class ArtistController {
     ) {
         artistService.unfollowArtist(artistId, authentication);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/lives")
+    public ResponseEntity<List<LiveSummaryResponse>> getUpcomingLivesOfFollowedArtists(
+            @AuthenticationPrincipal SimpleUserDetails userDetails
+    ) {
+        Long userId = userDetails.getUserId();
+
+        List<LiveSummaryResponse> responses =
+                liveService.getUpcomingLivesOfFollowedArtists(userId);
+
+        return ResponseEntity.ok(responses);
     }
 
     /* 아티스트 권한 유저의 공연 등록 요청

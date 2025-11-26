@@ -2,6 +2,7 @@ package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.UserFollowResponse;
 import com.team7.ConcerTUNE.dto.UserResponse;
+import com.team7.ConcerTUNE.dto.UserUpdateRequest;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.service.FollowService;
 import com.team7.ConcerTUNE.service.UserService;
@@ -39,9 +40,13 @@ public class UserController {
     //내 프로필 수정
     @PatchMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(userService.updateMyProfile(user));
+    public ResponseEntity<UserResponse> updateMyProfile(
+            @AuthenticationPrincipal User user,
+            @RequestBody UserUpdateRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateMyProfile(user, request));
     }
+
 
     //내 프로필 이미지 등록
     @PostMapping("/me/profile-image")

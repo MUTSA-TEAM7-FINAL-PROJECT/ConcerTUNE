@@ -19,7 +19,7 @@ public class LiveArtist {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "live_id", nullable = false)
-  private Lives live;
+  private Live live;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "artist_id", nullable = false)
