@@ -18,16 +18,6 @@ const LiveRequestPage = () => {
   const [loading, setLoading] = useState(false);
   const currentUser = authService.getCurrentUser();
 
-  // 아티스트 권한이 없으면 페이지 접근 차단
-  useEffect(() => {
-    // UserDto에 role이 없으므로, authService.login 응답에 role도 포함시켜야 함
-    // 지금은 임시로 User DTO에 role이 있다고 가정.
-    if (currentUser?.role !== "ARTIST") {
-      alert("공연 등록 권한이 없습니다.");
-      navigate("/");
-    }
-  }, [currentUser, navigate]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

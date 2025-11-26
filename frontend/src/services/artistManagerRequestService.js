@@ -15,6 +15,7 @@ const artistManagerRequestService = {
 
     getAllManagerRequestsForAdmin: async (pageableParams = {}) => {
         try {
+            console.log("Fetching all manager requests with params:", pageableParams);
             const response = await api.get("/api/artist-manager-requests", { 
                 params: pageableParams 
             });

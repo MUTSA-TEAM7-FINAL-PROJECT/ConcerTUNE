@@ -105,16 +105,7 @@ const RequestListPage = () => {
     useEffect(() => {
         if (isAuthLoading) {
             return; 
-        }
-
-        if (!isLoggedIn) {
-            // 로그인되어 있지 않으면 로그인 페이지로 이동
-            alert('로그인이 필요합니다.');
-            navigate('/login');
-            return;
-        }
-
-        
+        }     
         fetchRequests();
 
     }, [isAuthLoading, isAuthorized, navigate, fetchRequests]); 

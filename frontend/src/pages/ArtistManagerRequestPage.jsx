@@ -55,16 +55,8 @@ const ArtistManagerRequestPage = () => {
         }
     }, []);
 
-    // 1. 로그인 여부 확인
-    useEffect(() => {
-        if (!isLoggedIn) {
-            alert("로그인 후 아티스트 관리자 요청을 할 수 있습니다.");
-            navigate('/login');
-        }
-    }, [isLoggedIn, navigate]);
 
     // 2. 검색어 변경 시 아티스트 목록 로드
-    // 디바운스를 적용하여 검색 횟수를 줄이는 것을 권장합니다. (현재는 즉시 호출)
     useEffect(() => {
         if (requestData.selectedArtist) {
             setShowResults(false);

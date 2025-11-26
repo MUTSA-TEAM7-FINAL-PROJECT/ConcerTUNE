@@ -43,15 +43,12 @@ const ArtistManagerRequestListPage = () => {
             const pageableParams = { 
                 page: currentPage, 
                 size: PAGE_SIZE, 
-                // 백엔드 요청 필드명에 맞게 sort key 변경: requestCreatedAt -> requestedAt
                 sort: `createdAt,desc` 
             };
             
             let pageData;
 
-            // 💡 서비스 함수 호출 변경
             if (isAdmin) {
-      
                 pageData = await artistManagerRequestService.getAllManagerRequestsForAdmin(pageableParams);
             } else {
                 // 사용자용 내 요청 목록 조회
@@ -111,19 +108,11 @@ const ArtistManagerRequestListPage = () => {
         }
     };
 
-    // 💡 권한 검사 및 데이터 로딩 로직
     useEffect(() => {
         if (isAuthLoading) {
             return; 
         }
-
-        if (!isLoggedIn) {
-            alert('로그인이 필요합니다.');
-            navigate('/login');
-            return;
-        }
         
-        // currentPage가 변경될 때마다 fetchRequests 호출
         fetchRequests();
 
     }, [isAuthLoading, isLoggedIn, navigate, fetchRequests]); 

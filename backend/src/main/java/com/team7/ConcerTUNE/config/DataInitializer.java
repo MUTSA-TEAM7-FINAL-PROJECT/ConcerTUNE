@@ -296,7 +296,7 @@ public class DataInitializer {
                     String commentContent = (j == 0) ? "꿀팁 감사합니다!" : (j == 1 ? "저도 같이 가고 싶어요 ㅠㅠ" : "정보 잘 보고 갑니다!");
 
                     Comment comment = Comment.builder()
-                            .content(commentContent + " (댓글 No." + (j + 1) + ")")
+                            .content(commentContent)
                             .writer(commentWriter)
                             .post(savedPost)
                             .likeCount(random.nextInt(5))

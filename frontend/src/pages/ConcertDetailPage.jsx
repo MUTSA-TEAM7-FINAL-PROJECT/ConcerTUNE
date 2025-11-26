@@ -149,7 +149,7 @@ const ConcertDetailPage = () => {
                          <ul className="space-y-1 text-lg">
                             {Object.entries(concert.price).map(([seatType, price]) => (
                                 <li key={seatType} className="text-gray-800 font-medium">
-                                    <span className="text-gray-600">{seatType}석:</span> 
+                                    <span className="text-gray-600">{seatType}:</span> 
                                     <span className="font-bold text-red-600 ml-2">{price.toLocaleString()}원</span>
                                 </li>
                             ))}

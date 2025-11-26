@@ -78,7 +78,7 @@ function ScheduleCalendarContainer() {
     return (
         <div className="schedule-page-wrapper p-8 bg-white shadow-lg rounded-xl max-w-7xl mx-auto my-10">
             <h2 className="text-4xl font-extrabold text-gray-900 mb-8 border-b pb-4">
-                전체 라이브 스케줄
+                전체 공연 스케줄
             </h2>
             
             {/* 로딩 및 에러 상태 표시 */}
