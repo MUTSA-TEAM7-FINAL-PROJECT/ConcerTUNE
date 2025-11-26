@@ -19,6 +19,7 @@ public class LiveRequest {
     private String venue;
     private Map<String, Integer> price;
     private LocalDateTime ticketDateTime;
-    private List<Long> artistIds;
+    private List<Long> existingArtistIds;
+    private List<NewArtistRequest> newArtistRequests;
     private List<LiveScheduleDto> schedules;
 }
