@@ -2,6 +2,8 @@ package com.team7.ConcerTUNE.repository;
 
 import com.team7.ConcerTUNE.entity.CommunityCategoryType;
 import com.team7.ConcerTUNE.entity.Post;
+import com.team7.ConcerTUNE.entity.RequestStatus;
+import com.team7.ConcerTUNE.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

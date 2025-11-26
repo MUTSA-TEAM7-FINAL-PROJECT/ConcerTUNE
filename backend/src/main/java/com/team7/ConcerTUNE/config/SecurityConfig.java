@@ -49,6 +49,7 @@ public class SecurityConfig {
                                         "/ws-chat/**"
                                 ).permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

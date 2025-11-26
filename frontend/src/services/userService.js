@@ -1,74 +1,62 @@
 import api from "./api";
 
 const userService = {
-  getFollowArtistFeeds: async () => {
+  // 특정 유저 프로필 조회
+  getUserProfile: async (userId) => {
     try {
-      const response = await api.get(`/api/users/feeds/follow`);
-      return response.data;
-    } catch (err) {
-      console.error("팔로우 아티스트 피드 조회 실패:", err);
-      throw new Error(
-        err.response?.data?.message || "팔로우 피드를 불러오는 데 실패했습니다."
-      );
+      const res = await api.get(`/api/users/${userId}`);
+      return res.data;
+    } catch (error) {
+      console.error("유저 정보 조회 실패:", error);
+      throw error;
     }
   },
 
-  getMyProfile: async () => {
-    const res = await api.get("/api/users/me");
-    return res.data;
-  },
-
-  // --- 32-유저-프로필-및-팔로우-프론트 기능 통합 시작 ---
-
-  getUserProfile: async (userId) => {
-    const res = await api.get(`/api/users/${userId}`);
-    return res.data;
-  },
-
-  updateProfile: async (data) => {
-    const res = await api.patch("/api/users/me", data);
-    return res.data;
-  },
-
-  uploadProfileImage: async (file) => {
-    const formData = new FormData();
-    formData.append("image", file);
-
-    const res = await api.post("/api/users/me/profile-image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return res.data;
-  },
-
-  deleteProfileImage: async () => {
-    const res = await api.delete("/api/users/me/profile-image");
-    return res.data;
-  },
-
-  toggleFollow: async (targetId) => {
-    const res = await api.post(`/api/users/${targetId}/follow`);
-    return res.data;
-  },
-
-  // --- develop 기능 통합 시작 ---
-
-  getPersonalizedSchedules: async (userId) => {
+  // 팔로우 상태 확인
+  checkFollowStatus: async (userId) => {
     try {
-      console.log("Fetching personalized schedules for userId:", userId);
-      const response = await api.get("/api/schedules/personalized", {
-        params: { userId },
+      const res = await api.get(`/api/users/${userId}/is-following`);
+      return res.data; // Boolean
+    } catch (error) {
+      console.error("팔로우 상태 조회 실패:", error);
+      throw error;
+    }
+  },
+
+  // 팔로우 / 언팔로우
+  toggleFollow: async (userId) => {
+    try {
+      const res = await api.post(`/api/users/${userId}/follow`);
+      return res.data;
+    } catch (error) {
+      console.error("팔로우/언팔로우 실패:", error);
+      throw error;
+    }
+  },
+
+  // 팔로워 리스트
+  getFollowers: async (userId, page = 0, size = 20) => {
+    try {
+      const res = await api.get(`/api/users/${userId}/followers`, {
+        params: { page, size },
       });
-      if (response.status === 204) {
-        return [];
-      }
-      return response.data;
-    } catch (err) {
-      console.error("개인화된 스케줄 조회 실패:", err);
-      throw new Error(
-        err.response?.data?.message || "스케줄을 불러오는 데 실패했습니다."
-      );
+      return res.data;
+    } catch (error) {
+      console.error("팔로워 목록 조회 실패:", error);
+      return { content: [], totalPages: 0 };
+    }
+  },
+
+  // 팔로잉 리스트
+  getFollowings: async (userId, page = 0, size = 20) => {
+    try {
+      const res = await api.get(`/api/users/${userId}/followings`, {
+        params: { page, size },
+      });
+      return res.data;
+    } catch (error) {
+      console.error("팔로잉 목록 조회 실패:", error);
+      return { content: [], totalPages: 0 };
     }
   },
 };

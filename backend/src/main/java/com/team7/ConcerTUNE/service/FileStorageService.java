@@ -21,7 +21,7 @@ import java.util.UUID;
 public class FileStorageService {
     private final AmazonS3 s3Client;
 
-    @Value("${aws.s3.bucket-name")
+    @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
     public String uploadFile(MultipartFile file, String dirName) {

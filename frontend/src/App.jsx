@@ -28,20 +28,19 @@ import MyPage from "./pages/MyPage"; // develop 브랜치 (내 프로필 상세)
 const App = () => {
   return (
     <BrowserRouter>
-           {" "}
+      {" "}
       <Routes>
-               {" "}
+        {" "}
         <Route path="/*" element={<MainLayout />}>
-                    <Route path="" element={<Home />} />         {/* 검색 */}
-                    <Route path="search" element={<SearchResultPage />} />
+          <Route path="" element={<Home />} />
+          {/* 검색 */}
+          <Route path="search" element={<SearchResultPage />} />
           {/* 공연/아티스트 */}
-                    <Route path="concerts" element={<ConcertListPage />} />     
-              <Route path="concerts/:id" element={<ConcertDetailPage />} />     
-              <Route path="concerts/request" element={<ConcertRequestPage />} />
-                   {" "}
-          <Route path="artists/:artistId" element={<ArtistDetailPage />} />     
-
+          <Route path="concerts" element={<ConcertListPage />} />
+          <Route path="concerts/:id" element={<ConcertDetailPage />} />         {" "}
+          <Route path="concerts/request" element={<ConcertRequestPage />} />   
                {" "}
+          <Route path="artists/:artistId" element={<ArtistDetailPage />} />     {" "}
           <Route path="concerts/request-list" element={<RequestListPage />} /> 
                   <Route path="artists/request" element={<LiveRequestPage />} />
                    {" "}
@@ -74,7 +73,7 @@ const App = () => {
                     <Route path="me" element={<MyPage />} />
                     <Route path="me/update" element={<ProfileUpdatePage />} />
           {/* 타 사용자 프로필 */}
-                    <Route path="user/:userId" element={<UserPage />} />       {" "}
+                    <Route path="users/:userId" element={<UserPage />} />       {" "}
         </Route>
                 {/* MainLayout을 사용하지 않는 페이지 */}
                 <Route path="/login" element={<LoginPage />} />

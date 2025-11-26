@@ -6,7 +6,7 @@ spring:
     password: password
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: true
   data:
     redis:
@@ -76,6 +76,3 @@ frontend:
 logging:
   level:
     org.springframework.security: DEBUG
-
-file:
-  upload-dir: C:/uploads/profile-images

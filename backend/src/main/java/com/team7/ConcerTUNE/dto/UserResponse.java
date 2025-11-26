@@ -7,6 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -17,18 +21,33 @@ public class UserResponse {
     private String username;
     private String profileImageUrl;
     private String bio;
-    private String tags;
     private AuthRole auth;
+    private int followersCount;
+    private int followingCount;
+
+    private List<GenrePreferenceResponse> genrePreferences;
 
     public static UserResponse from(User user) {
+
+        List<GenrePreferenceResponse> genres = user.getTags() == null
+                ? Collections.emptyList()
+                : IntStream.range(0, user.getTags().size())
+                .mapToObj(i -> new GenrePreferenceResponse(
+                        (long) i,
+                        user.getTags().get(i)
+                ))
+                .toList();
+
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .profileImageUrl(user.getProfileImageUrl())
                 .bio(user.getBio())
-                .tags(user.getTags())
                 .auth(user.getAuth())
+                .genrePreferences(genres)
+                .followersCount(user.getFollowers().size())
+                .followingCount(user.getFollowings().size())
                 .build();
     }
 }
