@@ -1,17 +1,13 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.config.TossPaymentsConfig;
-import com.team7.ConcerTUNE.entity.Artist;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.ArtistDto;
-import com.team7.ConcerTUNE.temp.dto.SubscriptionCreateRequest;
-import com.team7.ConcerTUNE.temp.dto.SubscriptionDetailDto;
-import com.team7.ConcerTUNE.temp.dto.SubscriptionInitRequest;
-import com.team7.ConcerTUNE.temp.entity.DonationSubscription;
-import com.team7.ConcerTUNE.temp.entity.TossPaymentTransaction;
-import com.team7.ConcerTUNE.temp.repository.TossPaymentTransactionRepository;
-import com.team7.ConcerTUNE.temp.service.SubscriptionService;
+import com.team7.ConcerTUNE.dto.SubscriptionCreateRequest;
+import com.team7.ConcerTUNE.dto.SubscriptionDetailDto;
+import com.team7.ConcerTUNE.dto.SubscriptionInitRequest;
+import com.team7.ConcerTUNE.entity.DonationSubscription;
+import com.team7.ConcerTUNE.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

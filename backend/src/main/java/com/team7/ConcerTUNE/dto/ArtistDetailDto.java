@@ -18,6 +18,7 @@ public class ArtistDetailDto {
     private boolean isDomestic;
     private Set<GenreDto> genres;
     private long followerCount;
+    private boolean isOfficial;
 
     public static ArtistDetailDto fromEntity(Artist artist, long followerCount) {
         Set<GenreDto> genreDtos = artist.getArtistGenres().stream()
@@ -32,6 +33,7 @@ public class ArtistDetailDto {
                 .isDomestic(artist.isDomestic())
                 .genres(genreDtos)
                 .followerCount(followerCount)
+                .isOfficial(artist.isOfficial())
                 .build();
     }
 }

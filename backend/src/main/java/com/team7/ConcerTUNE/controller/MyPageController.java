@@ -1,11 +1,8 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.entity.Artist;
-import com.team7.ConcerTUNE.entity.Lives;
-import com.team7.ConcerTUNE.entity.Post;
-import com.team7.ConcerTUNE.temp.dto.*;
-import com.team7.ConcerTUNE.temp.service.MyPageService;
-import com.team7.ConcerTUNE.temp.service.SubscriptionService;
+import com.team7.ConcerTUNE.dto.*;
+import com.team7.ConcerTUNE.service.MyPageService;
+import com.team7.ConcerTUNE.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

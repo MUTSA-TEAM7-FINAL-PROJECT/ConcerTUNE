@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;

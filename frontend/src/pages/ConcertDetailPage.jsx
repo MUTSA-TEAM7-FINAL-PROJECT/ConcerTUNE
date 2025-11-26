@@ -1,9 +1,52 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+// 카카오 지도 관련 import
+import { Map, MapMarker, useKakaoLoader } from 'react-kakao-maps-sdk'; 
 import InfiniteScrollPostList from './InfiniteScrollPostList'; 
 import concertService from "../services/concertService";
 import ChatWidget from "../components/modal/ChatWidget";
 import { useAuth } from "../context/AuthContext";
+
+// 카카오 맵 API 키는 환경 변수에서 불러옵니다.
+const KAKAO_MAP_API_KEY = import.meta.env.VITE_KAKAO_MAP_KEY; 
+
+// 💡 지도 표시를 위한 별도 컴포넌트
+const VenueMapDisplay = ({ venue, address, lat, lng, isLoaded }) => {
+    // 위도, 경도가 모두 없으면 표시 불가 상태를 반환
+    if (!lat || !lng) {
+        return (
+            <div className="text-center p-8 bg-gray-100 rounded-lg">
+                <p className="text-red-600 font-semibold">장소 좌표 정보가 누락되었거나 검색 중입니다.</p>
+                <p className="text-gray-500 text-sm mt-1">
+                    현재 장소 이름: {venue || '없음'}
+                    {address && address !== '장소 검색 실패' ? ` / 검색된 주소: ${address}` : ''}
+                </p>
+            </div>
+        );
+    }
+    
+    const initialCenter = { lat: lat, lng: lng };
+    
+    if (!isLoaded) {
+        return <div className="text-center p-8 text-indigo-600">지도 API 로딩 중...</div>;
+    }
+    
+    return (
+        <div className="border border-gray-300 rounded-lg overflow-hidden shadow-md">
+            <Map
+                center={initialCenter}
+                style={{ width: '100%', height: '400px' }}
+                level={3} // 적당한 확대 레벨
+            >
+                <MapMarker 
+                    position={initialCenter} 
+                    title={venue} 
+                />
+            </Map>
+        </div>
+    );
+};
+
 
 const ConcertDetailPage = () => {
     const { id: concertId } = useParams(); 
@@ -17,7 +60,21 @@ const ConcertDetailPage = () => {
 
     const [isHearted, setIsHearted] = useState(false);
     const [isHeartLoading, setIsHeartLoading] = useState(false); 
+    
+    // 💡 지도 좌표 정보를 저장할 새로운 상태 추가
+    const [venueCoords, setVenueCoords] = useState({ 
+        address: null, 
+        lat: null, 
+        lng: null 
+    });
 
+    // 💡 카카오 지도 로더
+    const [isKakaoLoading] = useKakaoLoader({
+        appkey: KAKAO_MAP_API_KEY,
+        libraries: ["services"],
+    });
+    const isKakaoLoaded = !isKakaoLoading;
+    
     const checkBookmarkStatus = async () => {
         if (!concertId || !isLoggedIn) {
             setIsHearted(false); 
@@ -50,6 +107,33 @@ const ConcertDetailPage = () => {
             setIsHeartLoading(false);
         }
     };
+    
+    // 💡 카카오 장소 검색을 수행하는 함수
+    const searchVenueCoordinates = (venueName) => {
+        if (!window.kakao || !window.kakao.maps || !venueName) {
+            // 카카오 로더가 완료되지 않았거나 장소 이름이 없는 경우
+            console.warn("카카오 맵 API 또는 검색어 준비 안됨. (장소명:", venueName, ")");
+            return;
+        }
+        
+        // Places 객체 생성
+        const ps = new window.kakao.maps.services.Places();
+        
+        ps.keywordSearch(venueName, (data, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+                // 첫 번째 검색 결과 사용
+                const firstResult = data[0];
+                setVenueCoords({
+                    address: firstResult.road_address_name || firstResult.address_name,
+                    lat: parseFloat(firstResult.y),
+                    lng: parseFloat(firstResult.x),
+                });
+            } else {
+                console.error("장소 검색 실패:", status);
+                setVenueCoords({ address: "장소 검색 실패", lat: null, lng: null });
+            }
+        });
+    };
 
     useEffect(() => {
         const fetchConcertDetail = async () => {
@@ -63,9 +147,21 @@ const ConcertDetailPage = () => {
                 setLoading(true);
                 setError(null);
                 
+                // 1. 기본 공연 정보 로드
                 const liveData = await concertService.getConcert(concertId); 
                 
                 setConcert(liveData); 
+                
+                // 2. 장소 이름(venue)이 있다면 좌표 검색 수행
+                if (liveData.venue) {
+                    // 카카오 지도 로더가 완료된 후 실행
+                    if (!isKakaoLoading) {
+                        searchVenueCoordinates(liveData.venue);
+                    } else {
+                        // 로딩 중이면 isKakaoLoading 의존성을 통해 다시 실행될 것임
+                    }
+                }
+                
                 if (isLoggedIn) {
                     await checkBookmarkStatus();
                 }
@@ -78,8 +174,9 @@ const ConcertDetailPage = () => {
             }
         };
 
+        // isKakaoLoading이 false가 되거나 concertId가 변경될 때 다시 실행
         fetchConcertDetail();
-    }, [concertId, isLoggedIn]); 
+    }, [concertId, isLoggedIn, isKakaoLoading]); 
 
     const renderArtistContent = () => {
         if (!concert.artists || concert.artists.length === 0) {
@@ -112,16 +209,16 @@ const ConcertDetailPage = () => {
         );
     }
     
-    // 💡 일정/가격 정보 렌더링 함수
+    // 💡 일정/가격 정보 렌더링 함수 (지도 표시)
     const renderScheduleAndPriceContent = () => {
         const hasSchedules = concert.schedules && concert.schedules.length > 0;
         const hasPrices = concert.seatPrices && Object.keys(concert.seatPrices).length > 0;
 
         return (
             <div className="p-6 bg-white border border-t-0 rounded-b-xl shadow-lg space-y-8">
-                {/* 일정 정보 */}
+                {/* 1. 일정 정보 */}
                 <div className="border-b pb-4">
-                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">🗓️ 전체 공연 일정</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">전체 공연 일정</h3>
                     {!hasSchedules ? (
                         <p className="text-gray-500">등록된 공연 일정이 없습니다.</p>
                     ) : (
@@ -140,27 +237,42 @@ const ConcertDetailPage = () => {
                     )}
                 </div>
 
-                {/* 가격 정보 */}
-                <div>
-                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">💰 가격 정보</h3>
+                {/* 2. 가격 정보 */}
+                <div className="border-b pb-4">
+                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">가격 정보</h3>
                     {!hasPrices ? (
                         <p className="text-gray-500">등록된 좌석 가격 정보가 없습니다.</p>
                     ) : (
-                         <ul className="space-y-1 text-lg">
+                          <ul className="space-y-1 text-lg">
                             {Object.entries(concert.seatPrices).map(([seatType, price]) => (
                                 <li key={seatType} className="text-gray-800 font-medium">
-                                    <span className="text-gray-600">{seatType}석:</span> 
+                                    <span className="text-gray-600">{seatType}:</span> 
                                     <span className="font-bold text-red-600 ml-2">{price.toLocaleString()}원</span>
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
+
+                {/* 3. 지도 정보 섹션 (검색된 정보 사용) */}
+                <div>
+                    <h3 className="text-2xl font-bold mb-4 text-indigo-700">공연 장소 지도</h3>
+                    <VenueMapDisplay
+                        venue={concert.venue}
+                        address={venueCoords.address}
+                        lat={venueCoords.lat} 
+                        lng={venueCoords.lng}
+                        isLoaded={isKakaoLoaded}
+                    />
+                    <p className="mt-2 text-gray-600">
+                        <span className="font-semibold text-gray-700">주소:</span> {venueCoords.address || (concert.venue ? '주소 검색 중...' : '장소 정보 없음')}
+                    </p>
+                </div>
             </div>
         );
     }
 
-    // 탭 콘텐츠 렌더링 (수정)
+    // 탭 콘텐츠 렌더링
     const renderTabContent = () => {
         if (!concert) return null;
 
@@ -219,16 +331,16 @@ const ConcertDetailPage = () => {
             </h1>
             
             <div className="bg-white p-6 rounded-xl shadow-2xl mb-8 flex flex-col md:flex-row gap-8">
-             {/* 1. 포스터 영역 */}
+               {/* 1. 포스터 영역 */}
                 <div className="w-full md:w-1/3 flex-shrink-0">
                     <div className="relative overflow-hidden rounded-lg shadow-xl aspect-[3/4]">
-                           <img
+                            <img
                                 src={concert.posterUrl}
                                 alt={`${concert.title} 포스터`}
                                 className="absolute top-0 left-0 w-full h-full object-cover"
                             />
                             <div className="absolute top-4 left-4">
-                                {/* 💡 하트 버튼 수정 및 로직 연결 */}
+                                {/* 하트 버튼 */}
                                 <button 
                                     onClick={handleToggleBookmark}
                                     disabled={isHeartLoading}
@@ -259,7 +371,7 @@ const ConcertDetailPage = () => {
                     <div className="text-xl font-semibold text-gray-800 border-b pb-4">
                         <p className="text-indigo-700">공연 장소: <span className="text-gray-800">{concert.venue || '정보 없음'}</span></p>
                         
-                        {/* 💡 첫 번째 일정 표시 */}
+                        {/* 첫 번째 일정 표시 */}
                         {firstSchedule && (
                             <p className="text-indigo-700 mt-2">
                                 첫 공연일: 

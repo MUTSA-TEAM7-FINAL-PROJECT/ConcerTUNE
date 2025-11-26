@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import commentService from '../../services/commentService';
 
-const CommentWrite = ({ postId, onCommentCreated, isLoggedIn }) => { // 💡 isLoggedIn prop 수신
+const CommentWrite = ({ postId, onCommentCreated, isLoggedIn }) => { 
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // 🚨 로그인 체크
         if (!isLoggedIn) {
             alert("댓글 작성은 로그인한 사용자만 가능합니다.");
             return;
@@ -34,16 +33,14 @@ const CommentWrite = ({ postId, onCommentCreated, isLoggedIn }) => { // 💡 isL
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows="3"
-                // 💡 비로그인 시 placeholder 메시지 변경
                 placeholder={isLoggedIn ? "댓글을 입력해 주세요." : "로그인 후 댓글을 작성할 수 있습니다."}
                 className="w-full p-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                disabled={isSubmitting || !isLoggedIn} // 💡 비로그인 시 비활성화
+                disabled={isSubmitting || !isLoggedIn} 
             />
             <div className="flex justify-end mt-2">
                 <button
                     type="submit"
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                    // 💡 비로그인 시 비활성화
                     disabled={isSubmitting || !content.trim() || !isLoggedIn} 
                 >
                     {isSubmitting ? '등록 중...' : '등록'}

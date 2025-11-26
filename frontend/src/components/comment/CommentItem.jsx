@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import commentService from '../../services/commentService';
-/**
- * 댓글 목록의 개별 항목을 렌더링하는 컴포넌트
- */
-const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn prop 수신
-    
+
+const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { 
     const [isEditing, setIsEditing] = useState(false);
     const [editedContent, setEditedContent] = useState(comment.content);
     const [currentComment, setCurrentComment] = useState(comment);
@@ -16,7 +13,6 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
         });
     };
 
-    // 댓글 수정 처리 (로직은 기존과 동일)
     const handleEditSubmit = async () => {
         if (!editedContent.trim() || editedContent.trim() === currentComment.content.trim()) {
             setIsEditing(false);
@@ -36,7 +32,6 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
         }
     };
 
-    // 댓글 삭제 처리 (로직은 기존과 동일)
     const handleDelete = async () => {
         if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
         try {
@@ -47,9 +42,7 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
         }
     };
     
-    // 댓글 좋아요 토글 처리
     const handleLikeToggle = async () => {
-        // 🚨 이미 onClick에서 체크하지만, 혹시 모를 경우를 대비해 핸들러 내부에서 한 번 더 체크 가능
         if (!isLoggedIn) {
             alert("좋아요는 로그인한 사용자만 가능합니다.");
             return;
@@ -79,7 +72,6 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
                     <span className="text-xs text-gray-500">{formatDate(currentComment.createdAt)}</span>
                 </div>
                 
-                {/* 액션 버튼 (작성자에게만 보임) */}
                 {currentComment.isWriter && (
                     <div className="text-sm space-x-2">
                         {isEditing ? (
@@ -97,7 +89,6 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
                 )}
             </div>
 
-            {/* 댓글 내용 */}
             {isEditing ? (
                 <textarea
                     value={editedContent}
@@ -112,10 +103,8 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
                 </p>
             )}
 
-            {/* 좋아요 버튼: 로그인 상태일 때만 활성화 */}
             <div className="flex justify-end">
                 <button
-                    // 💡 비로그인 시 알림 표시 및 좋아요 기능 비활성화
                     onClick={isLoggedIn ? handleLikeToggle : () => alert("좋아요는 로그인한 사용자만 가능합니다.")}
                     disabled={loading || !isLoggedIn}
                     className={`flex items-center space-x-1 text-sm p-1 rounded transition disabled:opacity-50 ${
@@ -123,7 +112,6 @@ const CommentItem = ({ comment, onUpdate, isLoggedIn }) => { // 💡 isLoggedIn 
                     }`}
                     title={isLoggedIn ? "좋아요 토글" : "로그인 필요"}
                 >
-                    {/* 하트 아이콘 */}
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                     <span>{currentComment.likeCount}</span>
                 </button>

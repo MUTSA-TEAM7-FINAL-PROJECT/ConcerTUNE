@@ -1,10 +1,9 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.exception.ResourceNotFoundException;
 import com.team7.ConcerTUNE.repository.ArtistManagerRepository;
 import com.team7.ConcerTUNE.repository.ArtistRepository;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.dto.ArtistManagerRequestCreateDto;
 import com.team7.ConcerTUNE.dto.ArtistManagerRequestStatusUpdateDto;
 import com.team7.ConcerTUNE.entity.ArtistManagerRequest;

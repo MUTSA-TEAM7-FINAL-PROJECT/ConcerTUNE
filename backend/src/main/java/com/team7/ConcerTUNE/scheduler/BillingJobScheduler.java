@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.scheduler;
+package com.team7.ConcerTUNE.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

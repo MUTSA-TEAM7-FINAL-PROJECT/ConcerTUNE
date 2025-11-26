@@ -2,10 +2,10 @@ package com.team7.ConcerTUNE.config;
 
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.repository.*;
-import com.team7.ConcerTUNE.temp.repository.ArtistGenreRepository;
-import com.team7.ConcerTUNE.temp.repository.GenreRepository;
-import com.team7.ConcerTUNE.temp.repository.LiveSchedulesRepository;
-import com.team7.ConcerTUNE.temp.repository.SchedulesRepository;
+import com.team7.ConcerTUNE.repository.ArtistGenreRepository;
+import com.team7.ConcerTUNE.repository.GenreRepository;
+import com.team7.ConcerTUNE.repository.LiveSchedulesRepository;
+import com.team7.ConcerTUNE.repository.SchedulesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
 @Configuration

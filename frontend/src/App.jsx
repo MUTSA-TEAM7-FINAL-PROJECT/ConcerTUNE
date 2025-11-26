@@ -21,6 +21,9 @@ import ArtistManagerRequestListPage from "./pages/ArtistManagerRequestListPage";
 import ArtistManagerRequestPage from "./pages/ArtistManagerRequestPage";
 import SearchResultPage from "./pages/SearchResultPage";
 import MyPage from "./pages/MyPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentFailPage from "./pages/PaymentFailPage";
+import SubscriptionDetailPage from "./pages/SubscriptionDetailPage";
 
 const App = () => {
   return (
@@ -30,14 +33,17 @@ const App = () => {
           <Route path="search" element={<SearchResultPage />} />
           <Route path="user/:userId" element={<MyPage />} />
           <Route path="" element={<Home />} />
+          <Route path="subscriptions/:artistId" element={<SubscriptionDetailPage />} />
           <Route path="concerts" element={<ConcertListPage />} />
           <Route path="concerts/:id" element={<ConcertDetailPage />} />
           <Route path="concerts/request" element={<ConcertRequestPage />} />
           <Route path="artists/:artistId" element={<ArtistDetailPage />} />
 
           <Route path="concerts/request-list" element={<RequestListPage />} /> 
-        <Route path="artist-manager/requests-list" element={<ArtistManagerRequestListPage />} />
+          <Route path="artist-manager/requests-list" element={<ArtistManagerRequestListPage />} />
 
+          <Route path="payment/success" element={<PaymentSuccessPage />} />
+          <Route path="payment/fail" element={<PaymentFailPage />} />
           {/* 커뮤니티 목록 및 탭 레이아웃 */}
           <Route path="community" element={<CommunityPage />}>
                   <Route index element={<Navigate to="free" replace />} /> 

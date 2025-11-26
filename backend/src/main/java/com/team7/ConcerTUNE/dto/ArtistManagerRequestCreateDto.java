@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

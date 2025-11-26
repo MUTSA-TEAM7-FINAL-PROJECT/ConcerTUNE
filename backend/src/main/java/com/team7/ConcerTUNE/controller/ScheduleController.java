@@ -1,10 +1,9 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.temp.dto.LiveScheduleResponseDto;
-import com.team7.ConcerTUNE.temp.service.ScheduleService;
+import com.team7.ConcerTUNE.dto.LiveScheduleResponseDto;
+import com.team7.ConcerTUNE.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

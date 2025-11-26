@@ -1,7 +1,6 @@
 import React from 'react';
 import CommentItem from './CommentItem'; 
 
-// isLoggedIn prop을 받아서 CommentItem에 전달합니다.
 const CommentList = ({ comments, onCommentUpdated, isLoggedIn }) => {
     return (
         <div className="space-y-4">

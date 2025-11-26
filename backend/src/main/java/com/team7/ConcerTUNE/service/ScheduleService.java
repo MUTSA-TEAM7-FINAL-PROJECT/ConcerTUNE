@@ -1,10 +1,9 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.entity.LiveArtist;
 import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.repository.LiveArtistRepository;
 import com.team7.ConcerTUNE.repository.UserArtistRepository;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.dto.LiveScheduleResponseDto;
 import com.team7.ConcerTUNE.repository.BookmarkRepository;
 import com.team7.ConcerTUNE.repository.LiveRepository;

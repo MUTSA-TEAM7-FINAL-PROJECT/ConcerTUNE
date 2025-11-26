@@ -1,6 +1,6 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.temp.service.ArtistManagerService;
+import com.team7.ConcerTUNE.service.ArtistManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

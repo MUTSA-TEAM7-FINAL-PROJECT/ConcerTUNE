@@ -61,8 +61,8 @@ jwt:
   refresh-expiration: 604800000
 
 aws:
-  access-key-id:
-  secret-access-key:
+  access-key-id: AKIA3RYC6IYIWALYBWZE
+  secret-access-key: 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
   region: ap-northeast-2
   s3:
     bucket-name: pli-please
@@ -79,3 +79,11 @@ logging:
 
 file:
   upload-dir: C:/uploads/profile-images
+
+toss:
+  payments:
+    client-key: test_ck_0RnYX2w532ZeMQWJ469N3NeyqApQ
+    secret-key: test_sk_ex6BJGQOVDkLwgJKX5Rn3W4w2zNb
+
+    api:
+      base-url: https://api.tosspayments.com/v1

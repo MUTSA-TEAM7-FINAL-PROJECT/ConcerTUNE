@@ -16,6 +16,14 @@ import java.util.List;
 public class NotificationController {
     private final NotificationService notificationService;
 
+    @GetMapping("/me/unread-exists")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Boolean> hasUnreadNotifications(Authentication authentication) {
+        boolean hasUnread = notificationService.getMyNotifications(authentication, "false").stream()
+                .anyMatch(n -> !n.isRead());
+        return ResponseEntity.ok(hasUnread);
+    }
+
     // 내 알림 목록 조회
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")

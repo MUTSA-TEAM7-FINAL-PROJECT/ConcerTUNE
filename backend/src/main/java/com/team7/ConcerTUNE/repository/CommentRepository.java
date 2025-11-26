@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.repository;
+package com.team7.ConcerTUNE.repository;
 
 import com.team7.ConcerTUNE.entity.Comment;
 import com.team7.ConcerTUNE.entity.Post;

@@ -5,9 +5,11 @@ import com.team7.ConcerTUNE.entity.Follow;
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.repository.FollowRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
+import com.team7.ConcerTUNE.event.FollowEvent;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ public class FollowService {
     private final FollowRepository  followRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public boolean toggleFollow(Authentication authentication, Long targetId) {
 
@@ -38,12 +41,14 @@ public class FollowService {
 
         if (isFollowing) {
             followRepository.deleteByFollowerAndFollowing(follower, target);
+
         } else {
             Follow follow = Follow.builder()
                     .follower(follower)
                     .following(target)
                     .build();
             followRepository.save(follow);
+            eventPublisher.publishEvent(new FollowEvent(this, follower, target));
         }
         return !isFollowing;
     }

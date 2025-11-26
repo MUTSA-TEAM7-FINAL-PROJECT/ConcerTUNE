@@ -1,8 +1,7 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.entity.User;
 import com.team7.ConcerTUNE.repository.ArtistManagerRepository;
-import com.team7.ConcerTUNE.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;

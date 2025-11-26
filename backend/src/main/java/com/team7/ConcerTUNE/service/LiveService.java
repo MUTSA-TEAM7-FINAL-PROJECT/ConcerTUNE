@@ -1,9 +1,8 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.repository.*;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.event.LiveCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

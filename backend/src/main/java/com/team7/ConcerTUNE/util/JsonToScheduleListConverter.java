@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature; // 💡 추가
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule; // 💡 추가
-import com.team7.ConcerTUNE.temp.dto.ScheduleDto;
+import com.team7.ConcerTUNE.dto.ScheduleDto;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

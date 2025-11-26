@@ -1,7 +1,7 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
-import com.team7.ConcerTUNE.temp.entity.PaymentStatus;
-import com.team7.ConcerTUNE.temp.entity.SubscriptionStatus;
+import com.team7.ConcerTUNE.entity.PaymentStatus;
+import com.team7.ConcerTUNE.entity.SubscriptionStatus;
 import lombok.Builder;
 import lombok.Data;
 

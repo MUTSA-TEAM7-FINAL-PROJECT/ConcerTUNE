@@ -1,6 +1,5 @@
-package com.team7.ConcerTUNE.temp.entity;
+package com.team7.ConcerTUNE.entity;
 
-import com.team7.ConcerTUNE.temp.dto.SubscriptionCreateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

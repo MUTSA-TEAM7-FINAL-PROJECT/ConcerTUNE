@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.event;
+package com.team7.ConcerTUNE.event;
 
 import com.team7.ConcerTUNE.service.NotificationService;
 import lombok.RequiredArgsConstructor;

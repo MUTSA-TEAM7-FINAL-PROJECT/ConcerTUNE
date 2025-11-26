@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; 
+import { useParams } from "react-router-dom";
 import artistService from "../services/artistService";
-import fileService from "../services/fileService"; 
-import { useAuth } from "../context/AuthContext"; 
-import ScheduleCalendar from "../components/schedule/ScheduleCalendar"; 
-import { FaHeart, FaRegHeart, FaCheckCircle, FaInstagram, FaTwitter, FaYoutube, FaGlobe, FaLink } from 'react-icons/fa';
+import fileService from "../services/fileService";
+import { useAuth } from "../context/AuthContext";
+import ScheduleCalendar from "../components/schedule/ScheduleCalendar";
 import ArtistEditModal from "../components/modal/ArtistEditModal";
 import ProfileImageModal from "../components/modal/ProfileImageModal";
+import SubscriptionModal from "../components/modal/SubscriptionModal";
+import subscriptionService from "../services/subscriptionService";
+import { FaHeart, FaRegHeart, FaCheckCircle, FaInstagram, FaTwitter, FaYoutube, FaGlobe, FaLink, FaTimes } from 'react-icons/fa';
 
+// ====== 작은 컴포넌트 ======
 const FollowIcon = ({ isFollowing }) => isFollowing 
     ? <FaHeart className="w-5 h-5 transition-colors" />
     : <FaRegHeart className="w-5 h-5 transition-colors" />;
@@ -31,31 +34,29 @@ const SnsLinkIcon = ({ url }) => {
     );
 };
 
+// ====== ArtistDetailPage ======
 const ArtistDetailPage = () => {
-    const { artistId } = useParams(); 
-    const { isLoggedIn, user: currentUser } = useAuth(); 
+    const { artistId } = useParams();
+    const { isLoggedIn, user: currentUser } = useAuth();
 
-    const [artist, setArtist] = useState(null); 
+    const [artist, setArtist] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const [isFollowing, setIsFollowing] = useState(false);
     const [isFollowLoading, setIsFollowLoading] = useState(false);
 
-    const [isAdmin, setIsAdmin] = useState(false); 
+    const [isAdmin, setIsAdmin] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
-    const [editData, setEditData] = useState({
-        artistName: '',
-        artistImageUrl: '',
-        snsUrl: '',
-        genres: [],
-    });
-
+    const [editData, setEditData] = useState({ artistName: '', artistImageUrl: '', snsUrl: '', genres: [] });
     const [schedules, setSchedules] = useState([]);
     const [scheduleLoading, setScheduleLoading] = useState(true);
     const [scheduleError, setScheduleError] = useState(null);
+
+    const [isSubscribed, setIsSubscribed] = useState(false);
 
     const [infoMessage, setInfoMessage] = useState({ message: '', type: '' });
     const showMessage = (message, type = 'info') => {
@@ -63,6 +64,7 @@ const ArtistDetailPage = () => {
         setTimeout(() => setInfoMessage({ message: '', type: '' }), 3000);
     };
 
+    // ====== 데이터 fetch ======
     useEffect(() => {
         const fetchArtistDetail = async () => {
             try {
@@ -78,8 +80,22 @@ const ArtistDetailPage = () => {
     }, [artistId]);
 
     useEffect(() => {
+    if (!isLoggedIn) return;
+        const fetchSubscriptionStatus = async () => {
+            try {
+                const status = await subscriptionService.getSubscriptionStatus(artistId);
+                setIsSubscribed(status);
+            } catch (err) {
+                console.error(err);
+                setIsSubscribed(false);
+            }
+        };
+        fetchSubscriptionStatus();
+    }, [artistId, isLoggedIn]);
+
+    useEffect(() => {
+        if (!artistId) return;
         const fetchSchedules = async () => {
-            if (!artistId) return;
             try {
                 setScheduleLoading(true);
                 const data = await artistService.getArtistSchedules(artistId);
@@ -114,19 +130,18 @@ const ArtistDetailPage = () => {
         });
 
         const checkAdminStatus = async () => {
-        try {
-            const isAdmin = await artistService.checkIfAdmin(artist.managerId, currentUser.id);
-            setIsAdmin(isAdmin);
-        } catch (err) {
-              console.error("관리자 여부 확인 실패:", err);
-            setIsAdmin(false);
-        }
-      };
-
-    checkAdminStatus();
-
+            try {
+                const isAdmin = await artistService.checkIfAdmin(artistId, currentUser.id);
+                setIsAdmin(isAdmin);
+            } catch (err) {
+                console.error("관리자 여부 확인 실패:", err);
+                setIsAdmin(false);
+            }
+        };
+        checkAdminStatus();
     }, [artist, currentUser]);
 
+    // ====== 이벤트 핸들러 ======
     const handleToggleFollow = async () => {
         if (!isLoggedIn) return alert("로그인이 필요합니다.");
         try {
@@ -155,6 +170,7 @@ const ArtistDetailPage = () => {
         }
     };
 
+    // ====== 렌더 ======
     if (loading) return <div className="text-center mt-20 text-xl text-indigo-600">로딩 중...</div>;
     if (error) return <div className="text-center mt-20 text-xl text-red-600">{error}</div>;
     if (!artist) return <div className="text-center mt-20 text-xl text-gray-500">존재하지 않는 아티스트입니다.</div>;
@@ -180,8 +196,9 @@ const ArtistDetailPage = () => {
                     </div>
                     <div className="flex items-center justify-center mb-2">
                         <h2 className="text-3xl font-extrabold text-gray-900">{artist.artistName}</h2>
-                        {artist.isOfficial && <OfficialBadge />}
+                        {artist.official && <OfficialBadge />}
                     </div>
+
                     {isLoggedIn ? (
                         <button onClick={handleToggleFollow} disabled={isFollowLoading} className={`flex items-center gap-2 px-5 py-2 rounded-full font-bold mt-3 transition-colors duration-200
                             ${isFollowing ? "bg-red-50 text-red-600 border border-red-300 hover:bg-red-100" : "bg-indigo-600 text-white hover:bg-indigo-700"}`}>
@@ -194,6 +211,22 @@ const ArtistDetailPage = () => {
                             <span>팔로우 수: {artist.followerCount?.toLocaleString()}</span>
                         </div>
                     )}
+
+                    {artist.official && isLoggedIn && (
+                        <button
+                            onClick={() => setSubscriptionModalOpen(true)}
+                            disabled={isSubscribed} 
+                            className={`mt-3 px-6 py-2 rounded-md font-bold ${
+                                isSubscribed
+                                ? "bg-gray-400 text-white cursor-not-allowed"
+                                : "bg-green-600 text-white hover:bg-green-700"
+                            }`}
+                        >
+                            {isSubscribed ? "구독중" : "정기 구독하기"}
+                        </button>
+                    )}
+
+
                     {isAdmin && (
                         <button onClick={() => setEditModalOpen(true)} className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                             아티스트 정보 수정
@@ -251,6 +284,14 @@ const ArtistDetailPage = () => {
                 onClose={() => setImageModalOpen(false)}
                 currentImageUrl={editData.artistImageUrl}
                 handleFileChange={handleProfileImageChange}
+            />
+
+            {/* ====== Subscription Modal ====== */}
+            <SubscriptionModal
+                isOpen={subscriptionModalOpen}
+                onClose={() => setSubscriptionModalOpen(false)}
+                artistId={artistId}
+                amount={5000} // 기본 후원 금액
             />
         </div>
     );

@@ -1,6 +1,6 @@
-package com.team7.ConcerTUNE.temp.repository;
+package com.team7.ConcerTUNE.repository;
 
-import com.team7.ConcerTUNE.temp.entity.PaymentHistory;
+import com.team7.ConcerTUNE.entity.PaymentHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

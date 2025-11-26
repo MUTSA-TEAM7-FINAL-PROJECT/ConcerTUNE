@@ -1,10 +1,8 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.entity.LiveRequest;
 import com.team7.ConcerTUNE.entity.RequestStatus;
 import com.team7.ConcerTUNE.entity.User;
-import com.team7.ConcerTUNE.service.ArtistService;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.dto.LiveRequestCreateDto;
 import com.team7.ConcerTUNE.dto.LiveRequestResponse;
 import com.team7.ConcerTUNE.dto.LiveRequestUpdateStatusDto;

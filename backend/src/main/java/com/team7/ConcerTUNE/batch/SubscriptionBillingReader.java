@@ -1,8 +1,8 @@
-package com.team7.ConcerTUNE.temp.batch;
+package com.team7.ConcerTUNE.batch;
 
-import com.team7.ConcerTUNE.temp.entity.DonationSubscription;
-import com.team7.ConcerTUNE.temp.entity.SubscriptionStatus;
-import com.team7.ConcerTUNE.temp.repository.DonationSubscriptionRepository;
+import com.team7.ConcerTUNE.entity.DonationSubscription;
+import com.team7.ConcerTUNE.entity.SubscriptionStatus;
+import com.team7.ConcerTUNE.repository.DonationSubscriptionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemReader;
 

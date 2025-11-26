@@ -10,6 +10,14 @@ const api = axios.create({
   },
 });
 
+const requestApi = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+
 api.interceptors.request.use(
   (config) => {
     const token = StorageService.getAccessToken();
@@ -51,7 +59,7 @@ api.interceptors.response.use(
         
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
-        return api(originalRequest);
+        return requestApi(originalRequest);
 
       } catch (refreshError) {
         console.error("Token refresh failed, forcing logout:", refreshError);

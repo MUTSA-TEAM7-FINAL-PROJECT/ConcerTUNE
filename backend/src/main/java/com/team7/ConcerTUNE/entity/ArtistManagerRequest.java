@@ -1,9 +1,5 @@
-package com.team7.ConcerTUNE.temp.entity;
+package com.team7.ConcerTUNE.entity;
 
-import com.team7.ConcerTUNE.entity.Artist;
-import com.team7.ConcerTUNE.entity.BaseEntity;
-import com.team7.ConcerTUNE.entity.RequestStatus;
-import com.team7.ConcerTUNE.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

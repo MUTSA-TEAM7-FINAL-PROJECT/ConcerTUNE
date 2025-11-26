@@ -9,13 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 앱 실행 시 localStorage에서 토큰/유저 정보 확인
   useEffect(() => {
     const token = StorageService.getAccessToken();
     const storedUser = StorageService.getUser();
     if (token && storedUser) {
       setUser(storedUser);
-      // TODO: api.js로 /api/users/me 엔드포인트 호출해서 토큰이 진짜 유효한지 검증하는 로직 있으면 좋음
     }
     setLoading(false);
   }, []);
@@ -35,7 +33,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    // auth.js의 register 함수 호출
   };
 
   const value = {
@@ -51,7 +48,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom Hook 생성
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

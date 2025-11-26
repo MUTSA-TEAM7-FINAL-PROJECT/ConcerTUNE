@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import com.team7.ConcerTUNE.entity.Lives;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Optional;

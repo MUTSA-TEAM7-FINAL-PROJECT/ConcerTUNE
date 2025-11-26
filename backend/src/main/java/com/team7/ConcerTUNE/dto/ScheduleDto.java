@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import lombok.Getter;
 import lombok.Setter;

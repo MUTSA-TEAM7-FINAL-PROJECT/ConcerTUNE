@@ -1,6 +1,5 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
-import com.team7.ConcerTUNE.dto.GenreDto;
 import lombok.Getter;
 import lombok.Setter;
 

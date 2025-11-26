@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.entity;
+package com.team7.ConcerTUNE.entity;
 
 public enum SubscriptionStatus {
     ACTIVE,

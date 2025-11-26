@@ -4,10 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import artistService from '../services/artistService'; 
 import fileService from '../services/fileService'; 
 import concertService from '../services/concertService';
+import VenueSelector from '../components/map/VenueSelector'; // 🚨 지도 컴포넌트 임포트 유지 🚨
 
-// 아티스트 객체의 기본 구조를 정의 (신규 아티스트 입력 시 사용)
 const createNewArtist = (name, isDomestic) => {
-    // 임시 ID는 음수로 설정하여 기존 ID와 충돌 방지
     const newId = Date.now() * -1;
     return { 
         artistId: newId, 
@@ -17,46 +16,48 @@ const createNewArtist = (name, isDomestic) => {
     };
 };
 
-// API 응답 구조가 Pageable 객체일 경우, content 배열만 추출합니다.
 const extractArtistContent = (data) => {
     if (data && data.content) {
         return data.content;
     }
-    return data || []; // content가 없으면 원본 데이터 또는 빈 배열 반환
+    return data || []; 
 };
 
 const ConcertRequestPage = () => {
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    // 검색된 아티스트 목록 (API로부터 가져옴)
     const [artists, setArtists] = useState([]); 
     const [searchTerm, setSearchTerm] = useState('');
     
-    // 신규 아티스트 입력 상태를 객체로 관리하여 필드 추가
     const [newArtistInput, setNewArtistInput] = useState({
         name: '',
-        isDomestic: true, // 기본값: 국내
+        isDomestic: true, 
     });
     
     const [requestData, setRequestData] = useState({
         title: '',
         description: '',
-        venue: '',
         ticketUrl: '',
         schedules: [{ liveDate: '', liveTime: '' }],
         selectedArtists: [], 
-        seatPrices: [{ seatType: 'VIP석', price: 120000 }]
+        seatPrices: [{ seatType: 'VIP석', price: 120000 }],
+        
+        selectedLocation: {
+            venueName: '',
+            address: '',
+            latitude: null,
+            longitude: null,
+        },
     });
     
     const [posterFile, setPosterFile] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [artistLoading, setArtistLoading] = useState(false); // 아티스트 검색 로딩 상태 추가
+    const [artistLoading, setArtistLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // --- 아티스트 목록을 불러오는 함수 (수정: 검색어 기반) ---
-    // useCallback을 사용하여 디바운싱이나 최적화 준비
+
     const fetchArtists = useCallback(async (name) => {
         if (!name) {
             setArtists([]);
@@ -66,11 +67,8 @@ const ConcertRequestPage = () => {
         setArtistLoading(true);
         setError(null);
         try {
-            // artistService.getArtists 함수를 사용하고, name으로 검색어를 전달합니다.
-            // 페이징은 일단 첫 페이지, 10개만 가져오도록 설정
             const data = await artistService.getArtists(name, { page: 0, size: 10 });
             
-            // API 응답이 Pageable 구조일 경우, content를 추출
             const extractedArtists = extractArtistContent(data);
 
             setArtists(extractedArtists);
@@ -83,32 +81,31 @@ const ConcertRequestPage = () => {
         }
     }, []);
 
-    // --- 검색어 변경 시 API 호출 (Effect) ---
     useEffect(() => {
-        // Debounce 로직이 필요하다면 여기에 추가할 수 있지만, 일단은 바로 호출
         const handler = setTimeout(() => {
             if (searchTerm.trim().length > 0) {
                 fetchArtists(searchTerm.trim());
             } else {
                 setArtists([]);
             }
-        }, 300); // 300ms 디바운스
+        }, 300); 
 
         return () => {
             clearTimeout(handler);
         };
     }, [searchTerm, fetchArtists]);
 
-    // --- 로그인 확인 로직 (기존 유지) ---
     useEffect(() => {
+        if (authLoading) {
+            return; 
+        }
+
         if (!isLoggedIn) {
             alert("로그인 후 공연 요청을 할 수 있습니다.");
             navigate('/login');
         } 
-        // 초기에는 아티스트 전체 목록을 가져오지 않습니다. (검색 기반으로 변경)
     }, [isLoggedIn, navigate]);
 
-    // --- 공통 핸들러 (기존 유지) ---
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setRequestData(prev => ({ ...prev, [name]: value }));
@@ -118,8 +115,14 @@ const ConcertRequestPage = () => {
         setPosterFile(e.target.files[0]);
     };
 
-    // --- 아티스트 로직 (수정: 클라이언트 필터링 제거) ---
-    // API로부터 가져온 artists에서 이미 선택된 아티스트만 제외
+    // 🚨 장소 선택 핸들러 함수 추가 🚨
+    const handleLocationSelect = (location) => {
+        setRequestData(prev => ({
+            ...prev,
+            selectedLocation: location,
+        }));
+    };
+
     const filteredArtists = (artists ?? []).filter(artist =>
         !requestData.selectedArtists.some(selected => 
             selected.artistId === artist.artistId && !selected.isNew
@@ -132,7 +135,6 @@ const ConcertRequestPage = () => {
                 ...prev,
                 selectedArtists: [...prev.selectedArtists, { ...artist, isNew: false, isDomesticHint: null }]
             }));
-            // 선택 후 검색어와 검색 결과 초기화
             setSearchTerm(''); 
             setArtists([]);
         }
@@ -159,7 +161,6 @@ const ConcertRequestPage = () => {
         }));
     };
 
-    // --- 기타 핸들러 (기존 유지) ---
     const handleScheduleChange = (index, field, value) => {
         const newSchedules = [...requestData.schedules];
         newSchedules[index] = { ...newSchedules[index], [field]: value };
@@ -209,7 +210,6 @@ const ConcertRequestPage = () => {
         }));
     };
     
-    // --- 유효성 검사 및 제출 로직 (기존 유지) ---
     const validateForm = (data, file) => {
         const errors = [];
 
@@ -221,6 +221,11 @@ const ConcertRequestPage = () => {
         }
         if (data.selectedArtists.length === 0) {
             errors.push("요청 대상 아티스트를 최소 1명 선택하거나 직접 입력해야 합니다.");
+        }
+
+        // 🚨 장소 선택 유효성 검사 추가 🚨
+        if (!data.selectedLocation.venueName || data.selectedLocation.latitude === null) {
+            errors.push("공연 장소를 지도에서 검색하여 선택해야 합니다.");
         }
 
         const validSchedules = data.schedules.filter(s => s.liveDate && s.liveTime);
@@ -275,8 +280,8 @@ const ConcertRequestPage = () => {
                 title: requestData.title,
                 description: requestData.description,
                 posterUrl: posterImageUrl, 
-                ticketUrl: requestData.ticketUrl, 
-                venue: requestData.venue,
+                ticketUrl: requestData.ticketUrl,       
+                venue: requestData.selectedLocation.venueName,
                 seatPrices: pricesMap, 
                 schedules: validSchedules,
 
@@ -321,7 +326,7 @@ const ConcertRequestPage = () => {
                 
                 <form onSubmit={handleSubmit} className="space-y-10">
                     
-                    {/* 1. 요청 대상 아티스트 (검색/추가 기능 강화) */}
+                    {/* 1. 요청 대상 아티스트 */}
                     <div className="p-6 border border-indigo-300 rounded-xl bg-indigo-50 relative shadow-md">
                         <label className="block text-2xl font-extrabold text-gray-800 mb-4">
                             요청 대상 아티스트 <span className="text-red-500 text-lg">*</span>
@@ -360,7 +365,7 @@ const ConcertRequestPage = () => {
                             )}
                         </div>
                         
-                        {/* 신규 아티스트 직접 입력 섹션 (UI 개선) */}
+                        {/* 신규 아티스트 직접 입력 섹션 */}
                         <div className="mt-6 pt-4 border-t border-indigo-200 space-y-3">
                             <h4 className="text-lg font-semibold text-gray-700">신규 아티스트 요청</h4>
                             <div className="flex gap-3 items-center">
@@ -371,7 +376,7 @@ const ConcertRequestPage = () => {
                                     onChange={(e) => setNewArtistInput(prev => ({ ...prev, name: e.target.value }))}
                                     className="flex-1 border border-gray-300 rounded-lg p-3 focus:border-purple-500 focus:ring-purple-500 transition-colors"
                                 />
-                                {/* 국내/해외 선택 (Radio Button으로 변경) */}
+                                {/* 국내/해외 선택 */}
                                 <div className="flex space-x-4">
                                     <label className="flex items-center space-x-2 text-gray-700">
                                         <input
@@ -406,7 +411,7 @@ const ConcertRequestPage = () => {
                             </div>
                         </div>
 
-                        {/* 선택된 아티스트 목록 (Chip 스타일 개선) */}
+                        {/* 선택된 아티스트 목록 */}
                         <div className="mt-6 pt-4 border-t border-indigo-200">
                             <span className="text-base font-semibold text-gray-700 w-full mb-2 block">✅ 현재 선택된 아티스트:</span>
                             <div className="flex flex-wrap gap-3">
@@ -463,18 +468,26 @@ const ConcertRequestPage = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* 🚨 지도 컴포넌트 섹션으로 대체 🚨 */}
+                        <div className="grid grid-cols-1 gap-6">
                             <div>
-                                <label htmlFor="venue" className="block text-lg font-medium text-gray-700 mb-2">공연 장소/지역</label>
-                                <input
-                                    type="text"
-                                    id="venue"
-                                    name="venue"
-                                    value={requestData.venue}
-                                    onChange={handleInputChange}
-                                    placeholder="예: 서울 올림픽공원, 부산 벡스코"
-                                    className="w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500"
-                                />
+                                <label htmlFor="venue" className="block text-lg font-medium text-gray-700 mb-2">공연 장소 <span className="text-red-500">*</span></label>
+                                
+                                {/* VenueSelector 컴포넌트 삽입 */}
+                                <VenueSelector onSelectLocation={handleLocationSelect} />
+                                
+                                {/* 선택된 장소 정보 표시 */}
+                                <p className="mt-4 text-md font-semibold text-indigo-700 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                                    선택된 공연 장소: 
+                                    <span className="font-bold ml-2">
+                                        {requestData.selectedLocation.venueName || '지도에서 장소를 검색하고 선택해 주세요.'}
+                                    </span>
+                                    {requestData.selectedLocation.address && (
+                                        <span className="block text-sm font-normal text-gray-600">
+                                            ({requestData.selectedLocation.address})
+                                        </span>
+                                    )}
+                                </p>
                             </div>
 
                             <div>

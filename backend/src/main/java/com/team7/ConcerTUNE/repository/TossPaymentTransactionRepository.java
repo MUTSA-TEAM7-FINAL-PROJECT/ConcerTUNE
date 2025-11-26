@@ -1,7 +1,6 @@
-package com.team7.ConcerTUNE.temp.repository;
+package com.team7.ConcerTUNE.repository;
 
-import com.team7.ConcerTUNE.entity.Post;
-import com.team7.ConcerTUNE.temp.entity.TossPaymentTransaction;
+import com.team7.ConcerTUNE.entity.TossPaymentTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

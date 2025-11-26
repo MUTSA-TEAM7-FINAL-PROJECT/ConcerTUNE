@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.repository;
+package com.team7.ConcerTUNE.repository;
 
 import com.team7.ConcerTUNE.entity.CommunityCategoryType;
 import com.team7.ConcerTUNE.entity.Post;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {

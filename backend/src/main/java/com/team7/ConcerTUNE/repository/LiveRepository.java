@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.repository;
+package com.team7.ConcerTUNE.repository;
 
 import com.team7.ConcerTUNE.entity.Lives;
 import org.springframework.data.domain.Page;
@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface LiveRepository extends JpaRepository<Lives, Long> {

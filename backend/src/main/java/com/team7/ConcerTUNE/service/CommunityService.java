@@ -1,10 +1,9 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.*;
 import com.team7.ConcerTUNE.entity.*;
 import com.team7.ConcerTUNE.repository.LivesRepository;
 import com.team7.ConcerTUNE.repository.UserRepository;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.event.CommentCreatedEvent;
 import com.team7.ConcerTUNE.repository.CommentRepository;
 import com.team7.ConcerTUNE.repository.PostLikeRepository;

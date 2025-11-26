@@ -1,6 +1,6 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.temp.service.BookmarkService;
+import com.team7.ConcerTUNE.service.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

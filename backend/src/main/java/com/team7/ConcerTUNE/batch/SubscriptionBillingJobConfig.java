@@ -1,8 +1,8 @@
-package com.team7.ConcerTUNE.temp.batch;
+package com.team7.ConcerTUNE.batch;
 
-import com.team7.ConcerTUNE.temp.entity.DonationSubscription;
-import com.team7.ConcerTUNE.temp.repository.DonationSubscriptionRepository;
-import com.team7.ConcerTUNE.temp.service.SubscriptionService;
+import com.team7.ConcerTUNE.entity.DonationSubscription;
+import com.team7.ConcerTUNE.repository.DonationSubscriptionRepository;
+import com.team7.ConcerTUNE.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;

@@ -1,7 +1,7 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.temp.dto.SearchResponseDto;
-import com.team7.ConcerTUNE.temp.service.SearchService;
+import com.team7.ConcerTUNE.dto.SearchResponseDto;
+import com.team7.ConcerTUNE.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

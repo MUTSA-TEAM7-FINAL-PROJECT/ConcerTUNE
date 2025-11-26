@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import com.team7.ConcerTUNE.entity.CommunityCategoryType;
 import com.team7.ConcerTUNE.entity.Post;

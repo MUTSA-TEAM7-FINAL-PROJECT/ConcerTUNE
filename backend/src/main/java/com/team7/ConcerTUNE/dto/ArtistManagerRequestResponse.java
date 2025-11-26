@@ -1,7 +1,7 @@
-package com.team7.ConcerTUNE.temp.dto;
+package com.team7.ConcerTUNE.dto;
 
 import com.team7.ConcerTUNE.entity.RequestStatus;
-import com.team7.ConcerTUNE.temp.entity.ArtistManagerRequest;
+import com.team7.ConcerTUNE.entity.ArtistManagerRequest;
 import lombok.Builder;
 import lombok.Getter;
 

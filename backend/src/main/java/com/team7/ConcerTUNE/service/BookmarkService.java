@@ -1,9 +1,8 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.entity.Bookmarks;
 import com.team7.ConcerTUNE.entity.Lives;
 import com.team7.ConcerTUNE.entity.User;
-import com.team7.ConcerTUNE.service.AuthService;
 import com.team7.ConcerTUNE.repository.BookmarkRepository;
 import com.team7.ConcerTUNE.repository.LiveRepository;
 import lombok.RequiredArgsConstructor;

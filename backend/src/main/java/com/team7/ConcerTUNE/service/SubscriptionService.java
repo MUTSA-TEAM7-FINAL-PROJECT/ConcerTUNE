@@ -1,4 +1,4 @@
-package com.team7.ConcerTUNE.temp.service;
+package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.ArtistDto;
 import com.team7.ConcerTUNE.dto.SubscriptionCreateRequest;

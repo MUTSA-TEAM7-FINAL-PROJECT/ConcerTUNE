@@ -1,11 +1,9 @@
-package com.team7.ConcerTUNE.temp.batch;
+package com.team7.ConcerTUNE.batch;
 
-import com.team7.ConcerTUNE.temp.entity.DonationSubscription;
-import com.team7.ConcerTUNE.temp.service.SubscriptionService;
+import com.team7.ConcerTUNE.entity.DonationSubscription;
+import com.team7.ConcerTUNE.service.SubscriptionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 public class SubscriptionBillingProcessor implements ItemProcessor<DonationSubscription, DonationSubscription> {

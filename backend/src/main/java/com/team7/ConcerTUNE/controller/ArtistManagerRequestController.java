@@ -1,10 +1,10 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.entity.User;
-import com.team7.ConcerTUNE.service.AuthService;
-import com.team7.ConcerTUNE.temp.dto.*;
-import com.team7.ConcerTUNE.temp.entity.ArtistManagerRequest;
-import com.team7.ConcerTUNE.temp.service.ArtistManagerRequestService;
+import com.team7.ConcerTUNE.dto.ArtistManagerRequestCreateDto;
+import com.team7.ConcerTUNE.dto.ArtistManagerRequestResponse;
+import com.team7.ConcerTUNE.dto.ArtistManagerRequestStatusUpdateDto;
+import com.team7.ConcerTUNE.entity.ArtistManagerRequest;
+import com.team7.ConcerTUNE.service.ArtistManagerRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,11 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/artist-manager-requests")

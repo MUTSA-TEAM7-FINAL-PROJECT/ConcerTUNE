@@ -1,7 +1,7 @@
 package com.team7.ConcerTUNE.entity;
 
-import com.team7.ConcerTUNE.temp.dto.NewArtistRequestDto;
-import com.team7.ConcerTUNE.temp.dto.ScheduleDto;
+import com.team7.ConcerTUNE.dto.NewArtistRequestDto;
+import com.team7.ConcerTUNE.dto.ScheduleDto;
 import com.team7.ConcerTUNE.util.JsonToLongListConverter;
 import com.team7.ConcerTUNE.util.JsonToMapConverter;
 import com.team7.ConcerTUNE.util.JsonToNewArtistListConverter;

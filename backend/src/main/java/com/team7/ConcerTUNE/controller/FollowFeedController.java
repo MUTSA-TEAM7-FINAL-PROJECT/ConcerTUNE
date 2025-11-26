@@ -1,7 +1,7 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.temp.dto.FollowArtistFeedDto;
-import com.team7.ConcerTUNE.temp.service.FollowFeedService;
+import com.team7.ConcerTUNE.dto.FollowArtistFeedDto;
+import com.team7.ConcerTUNE.service.FollowFeedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

@@ -1,10 +1,9 @@
-package com.team7.ConcerTUNE.temp.controller;
+package com.team7.ConcerTUNE.controller;
 
-import com.team7.ConcerTUNE.service.UserService;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestCreateDto;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestResponse;
-import com.team7.ConcerTUNE.temp.dto.LiveRequestUpdateStatusDto;
-import com.team7.ConcerTUNE.temp.service.LiveRequestService;
+import com.team7.ConcerTUNE.dto.LiveRequestCreateDto;
+import com.team7.ConcerTUNE.dto.LiveRequestResponse;
+import com.team7.ConcerTUNE.dto.LiveRequestUpdateStatusDto;
+import com.team7.ConcerTUNE.service.LiveRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

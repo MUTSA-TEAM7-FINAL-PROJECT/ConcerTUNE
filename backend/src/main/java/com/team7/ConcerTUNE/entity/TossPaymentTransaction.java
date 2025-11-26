@@ -1,6 +1,6 @@
-package com.team7.ConcerTUNE.temp.entity;
+package com.team7.ConcerTUNE.entity;
 
-import com.team7.ConcerTUNE.temp.dto.TossPaymentResponse;
+import com.team7.ConcerTUNE.dto.TossPaymentResponse;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

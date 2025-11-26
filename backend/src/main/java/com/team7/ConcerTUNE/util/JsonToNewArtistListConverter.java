@@ -3,7 +3,7 @@ package com.team7.ConcerTUNE.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.team7.ConcerTUNE.temp.dto.NewArtistRequestDto;
+import com.team7.ConcerTUNE.dto.NewArtistRequestDto;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

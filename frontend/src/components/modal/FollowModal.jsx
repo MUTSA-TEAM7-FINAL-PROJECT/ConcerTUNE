@@ -64,7 +64,6 @@
                         ))}
                     </div>
 
-                    {/* 페이지 네비게이션 */}
                     <div className="flex justify-between mt-4">
                         <button
                             disabled={page === 0}
