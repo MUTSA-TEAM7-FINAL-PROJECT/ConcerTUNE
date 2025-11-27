@@ -1,6 +1,7 @@
 package com.team7.ConcerTUNE.controller;
 
 import com.team7.ConcerTUNE.dto.LiveRequest;
+import com.team7.ConcerTUNE.dto.LiveRequestResponse;
 import com.team7.ConcerTUNE.dto.LiveResponse;
 import com.team7.ConcerTUNE.entity.Live;
 import com.team7.ConcerTUNE.entity.User;
@@ -39,20 +40,20 @@ public class LiveRequestController {
 
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<LiveResponse>> getAllRequests(
+    public ResponseEntity<Page<LiveRequestResponse>> getAllRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<LiveResponse> liveRequests = liveRequestService.getAllRequests(pageable);
-        return ResponseEntity.ok(liveRequests);
+        Page<LiveRequestResponse> liveRequestsResponse = liveRequestService.getAllRequests(pageable);
+        return ResponseEntity.ok(liveRequestsResponse);
     }
 
     @GetMapping("/{liveRequestId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LiveResponse> getRequest(@PathVariable Long liveRequestId) {
-        LiveResponse liveResponse = liveRequestService.getLiveRequest(liveRequestId);
-        return ResponseEntity.ok(liveResponse);
+    public ResponseEntity<LiveRequestResponse> getRequest(@PathVariable Long liveRequestId) {
+        LiveRequestResponse liveRequestsResponse = liveRequestService.getLiveRequest(liveRequestId);
+        return ResponseEntity.ok(liveRequestsResponse);
     }
 
     @PatchMapping("/{liveRequestId}/approve")

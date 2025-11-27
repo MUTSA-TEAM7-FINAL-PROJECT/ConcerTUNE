@@ -1,6 +1,7 @@
 package com.team7.ConcerTUNE.service;
 
 import com.team7.ConcerTUNE.dto.LiveRequest;
+import com.team7.ConcerTUNE.dto.LiveRequestResponse;
 import com.team7.ConcerTUNE.dto.LiveResponse;
 import com.team7.ConcerTUNE.dto.NewArtistRequest;
 import com.team7.ConcerTUNE.entity.*;
@@ -96,17 +97,17 @@ public class LiveRequestService {
     }
 
     // 요청 목록 반환
-    public Page<LiveResponse> getAllRequests(Pageable pageable) {
+    public Page<LiveRequestResponse> getAllRequests(Pageable pageable) {
         Page<Live> liveRequests = liveRepository.findAllByRequestStatus(RequestStatus.PENDING, pageable);
-        return liveRequests.map(LiveResponse::fromEntity);
+        return liveRequests.map(LiveRequestResponse::fromEntity);
     }
 
     // 요청 개별 반환
-    public LiveResponse getLiveRequest(Long liveRequestId) {
+    public LiveRequestResponse getLiveRequest(Long liveRequestId) {
         Live live = liveRepository.findByIdAndRequestStatus(liveRequestId, RequestStatus.PENDING)
                 .orElseThrow(() -> new ResourceNotFoundException("요청을 찾을 수 없습니다. ID: " + liveRequestId));
 
-        return LiveResponse.fromEntity(live);
+        return LiveRequestResponse.fromEntity(live);
     }
 
     // 요청 승인 및 공연 등록
