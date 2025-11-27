@@ -29,6 +29,7 @@ public class LiveRequestService {
     private final ScheduleRepository scheduleRepository;
     private final LiveArtistRepository liveArtistRepository;
     private final LiveScheduleRepository liveScheduleRepository;
+    private final UserService userService;
 
     // 요청 등록
     public LiveResponse createRequest(LiveRequest request, User user) {
@@ -100,6 +101,14 @@ public class LiveRequestService {
     public Page<LiveRequestResponse> getAllRequests(Pageable pageable) {
         Page<Live> liveRequests = liveRepository.findAllByRequestStatus(RequestStatus.PENDING, pageable);
         return liveRequests.map(LiveRequestResponse::fromEntity);
+    }
+
+    public Page<LiveRequestResponse> getMyRequests(Long userId, Pageable pageable) {
+        User user = userService.findEntityById(userId);
+
+        Page<Live> lives = liveRepository.findAllByWriter(user, pageable);
+
+        return lives.map(LiveRequestResponse::fromEntity);
     }
 
     // 요청 개별 반환
