@@ -38,6 +38,21 @@ public class LiveRequestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/my-list")
+    public ResponseEntity<Page<LiveRequestResponse>> getMyRequests(
+            @AuthenticationPrincipal SimpleUserDetails principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Long userId = principal.getUserId();
+
+        Page<LiveRequestResponse> responses = liveRequestService.getMyRequests(userId, pageable);
+
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<LiveRequestResponse>> getAllRequests(
